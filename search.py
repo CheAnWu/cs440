@@ -259,6 +259,9 @@ def greedy(maze):
     #coordinate
     return [], num_states_explored
 
+
+#https://en.wikipedia.org/wiki/A*_search_algorithm
+
 def a_star_heuristic(spot, end):
     #Who knows
     return abs(spot[0]-end[0]) - abs(spot[1]-spot[1])
