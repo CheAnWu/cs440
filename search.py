@@ -180,6 +180,9 @@ def dfs(maze):
     #coordinate
     return [], num_states_explored
 
+#https://www.geeksforgeeks.org/best-first-search-informed-search/
+
+
 def distance_away(spot, end):
     return abs(end[0]-spot[0]) + abs(end[1]-spot[1])
 
@@ -203,6 +206,8 @@ def greedy(maze):
     #We can iterate through the dictionary backwards to get our backwards path
     meta = dict()
 
+    #This dictionary is to used keep the information needed to get the
+    #PriorityQ going, is a 3-tuple (distance from start using best path, manhattan distance)
     spot_information = dict()
 
     #Get starting point, initalize it's dict value so that we know when to stop
@@ -210,8 +215,6 @@ def greedy(maze):
     start = maze.getStart()
     meta[start] = None
     spot_information[start] = (0, distance_away(start, end), 0)
-
-    print(start)
 
     open_set.put( (spot_information[start][0] + spot_information[start][1], start) )
 
@@ -221,24 +224,28 @@ def greedy(maze):
         subroute = subroute_tuple[1]
 
         num_states_explored += 1
-        #print(subroute[1])
 
         if (subroute == end):
             return make_path(subroute, meta),num_states_explored
 
         for neighbor in maze.getNeighbors(subroute[0], subroute[1]):
 
+            #Update our information dictionary
             if(neighbor not in spot_information):
+                #Update dictionary using previous value and hueristic (Manhattan) and making it unvisited
                 spot_information[neighbor] = (spot_information[subroute][0] + 1 , distance_away(neighbor, end) , 0)
                 meta[neighbor] = subroute
 
+            #Our dictionary value needs to be replaced because we found a better route
             elif(spot_information[neighbor][0] > spot_information[subroute][0] + 1):
                 spot_information[neighbor] = (spot_information[subroute][0] + 1, distance_away(neighbor, end),spot_information[neighbor][2])
                 meta[neighbor] = subroute
 
+            #We've seen this before
             if(spot_information[neighbor][2] == 2):
                 continue
 
+            #We haven't looked at this yet
             if(spot_information[neighbor][2] == 0):
                 spot_information[neighbor] = (spot_information[neighbor][0], spot_information[neighbor][1], 1)
                 open_set.put( (spot_information[neighbor][0] + spot_information[neighbor][1], neighbor) )
