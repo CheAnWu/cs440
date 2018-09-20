@@ -20,6 +20,7 @@ files and classes when code is run, so be careful to not modify anything else.
 # searchMethod is the search method specified by --method flag (bfs,dfs,greedy,astar)
 
 from queue import *
+#sdfsdf
 
 def search(maze, searchMethod):
     return {
