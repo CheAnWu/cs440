@@ -216,6 +216,7 @@ def greedy(maze):
     meta[start] = None
     spot_information[start] = (0, distance_away(start, end), 0)
 
+    #Priority Considers the sum of the cost to get there and Manhattan
     open_set.put( (spot_information[start][0] + spot_information[start][1], start) )
 
     #While we can still explore
