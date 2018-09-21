@@ -253,8 +253,8 @@ def greedy(maze):
 
 def a_star_heuristic(spot, end):
     #Who knows
-    #LUKASKNOWS
-    return abs(spot[0]-end[0]) - abs(spot[1]-spot[1])
+    #LUKASDOESNTKNOW
+    return (abs(spot[0]-end[0]) ** 2 - abs(spot[1]-spot[1])** 2) ** 0.5
 
 def astar(maze):
 
