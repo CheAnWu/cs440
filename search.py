@@ -58,7 +58,7 @@ def bfs(maze):
     last_path = total_path[len(total_path)-1]
     last_spot = last_path[len(last_path)-1]
     final_path.append(last_spot)
-    print(final_path)
+    #print(final_path)
     return final_path, num_states_explored
 
 
@@ -173,6 +173,35 @@ def nearest_neighbor(start, goals):
 
 
 def dfs(maze):
+
+    num_states_explored = 0
+
+    path = nearest_neighbor(maze.getStart(), maze.getObjectives())
+
+    total_path = []
+    start = maze.getStart()
+
+    while path:
+        end = path.pop(0)
+        return_value = dfs_path(start, end, maze)
+        total_path.append(return_value[0])
+        num_states_explored += return_value[1]
+        start = end
+
+    final_path = []
+    for i in total_path:
+        for j in range(0, len(i) - 1):
+            final_path.append(i[j])
+    last_path = total_path[len(total_path)-1]
+    last_spot = last_path[len(last_path)-1]
+    final_path.append(last_spot)
+    #print(final_path)
+    return final_path, num_states_explored
+
+
+
+def dfs_path(start, end, maze):
+
     #DFS is Implemented with a stack
     #A lot of code is borrowed from the Wiki for dfs
 
@@ -180,7 +209,6 @@ def dfs(maze):
     num_states_explored = 0
 
     #This method returns an array of all objectives, this just grabs the first
-    end = maze.getObjectives()[0]
 
     #This is my fake Stack
     open_set = list()
@@ -195,7 +223,7 @@ def dfs(maze):
 
     #Get starting point, initalize it's dict value so that we know when to stop
     #Going back and looking, putting it on the stack to start us off
-    start = maze.getStart()
+
     meta[start] = None
     open_set.append(start)
 
@@ -205,12 +233,12 @@ def dfs(maze):
         #Look at the most recently add coord in the stack, we now have started
         #to explore that state
         subroute = open_set.pop(len(open_set) - 1)
-        num_states_explored += 1
 
         #If it's our objective, that's all we need in an unweighted graph
         if (subroute == end):
             return make_path(subroute, meta),num_states_explored
 
+        num_states_explored += 1
         #Get the neighbors so we can check up on them eventually
         for neighbor in maze.getNeighbors(subroute[0], subroute[1]):
 
@@ -239,12 +267,35 @@ def distance_away(spot, end):
 
 def greedy(maze):
     #Greedy is Implemented with a PriorityQ
+    num_states_explored = 0
 
+    path = nearest_neighbor(maze.getStart(), maze.getObjectives())
+
+    total_path = []
+    start = maze.getStart()
+
+    while path:
+        end = path.pop(0)
+        return_value = greedy_path(start, end, maze)
+        total_path.append(return_value[0])
+        num_states_explored += return_value[1]
+        start = end
+
+    final_path = []
+    for i in total_path:
+        for j in range(0, len(i) - 1):
+            final_path.append(i[j])
+    last_path = total_path[len(total_path)-1]
+    last_spot = last_path[len(last_path)-1]
+    final_path.append(last_spot)
+    #print(final_path)
+    return final_path, num_states_explored
+
+def greedy_path(start, end, maze):
     #Initialize the num_states_explored as 0
     num_states_explored = 0
 
     #This method returns an array of all objectives, this just grabs the first
-    end = maze.getObjectives()[0]
 
     open_set = PriorityQueue()
 
@@ -262,7 +313,6 @@ def greedy(maze):
 
     #Get starting point, initalize it's dict value so that we know when to stop
     #Going back and looking, putting it on the stack to start us off
-    start = maze.getStart()
     meta[start] = None
     spot_information[start] = (0, distance_away(start, end), 0)
 
@@ -321,8 +371,31 @@ def astar(maze):
 
     num_states_explored = 0
 
-    end = maze.getObjectives()[0]
+    path = nearest_neighbor(maze.getStart(), maze.getObjectives())
+
+    total_path = []
     start = maze.getStart()
+
+    while path:
+        end = path.pop(0)
+        return_value = astar_path(start, end, maze)
+        total_path.append(return_value[0])
+        num_states_explored += return_value[1]
+        start = end
+
+    final_path = []
+    for i in total_path:
+        for j in range(0, len(i) - 1):
+            final_path.append(i[j])
+    last_path = total_path[len(total_path)-1]
+    last_spot = last_path[len(last_path)-1]
+    final_path.append(last_spot)
+    #print(final_path)
+    return final_path, num_states_explored
+
+
+def astar_path(start, end, maze):
+    num_states_explored = 0
 
     closed_set = set()
 
