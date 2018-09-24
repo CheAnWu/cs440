@@ -21,6 +21,95 @@ files and classes when code is run, so be careful to not modify anything else.
 
 from queue import *
 
+def makeTrueDistChart(maze, goals):
+    goalsAndStart = goals.copy()
+    goalsAndStart.insert(0, maze.getStart())
+    fullChart = [[]]
+    for i in range(len(goalsAndStart)):
+
+        for j in range(i,len(goalsAndStart)):
+            if i == j:
+                fullChart[i][j] = 0
+            value = preComputationAstar(maze, goals[i], goals[j])
+            fullChart[i][j] = value
+            fullChart[j][i] = value
+    return fullChart
+
+
+
+
+#returns dist from one goal node to another
+def preComputationAstar(maze, start, end):
+    closed_set = set()
+
+    open_set = PriorityQueue()
+    track_set = set()
+
+    came_from = dict()
+    came_from[start] = None
+
+    gScore = dict()
+
+    dimensions = maze.getDimensions()
+
+    for i in range(0, dimensions[0]):
+        for j in range(0, dimensions[1]):
+            if (maze.isWall(i, j)):
+                gScore[(i, j)] = -1
+            else:
+                gScore[(i, j)] = 10000000
+
+    gScore[start] = 0
+
+    fScore = dict()
+
+    for i in range(0, dimensions[0]):
+        for j in range(0, dimensions[1]):
+            if (maze.isWall(i, j)):
+                fScore[(i, j)] = -1
+            else:
+                fScore[(i, j)] = 10000000
+
+    fScore[start] = a_star_heuristic(start, end)
+
+    open_set.put((fScore[start], start))
+    track_set.add(start)
+
+    while open_set:
+        current_tuple = open_set.get(0)
+
+        current = current_tuple[1]
+        track_set.remove(current)
+
+        if (current == end):
+            return len(came_from)
+
+        closed_set.add(current)
+
+        for neighbor in maze.getNeighbors(current[0], current[1]):
+            if neighbor in closed_set:
+                continue
+
+            tentative_gScore = gScore[current] + 1
+
+            if neighbor not in track_set:
+
+                came_from[neighbor] = current
+                gScore[neighbor] = tentative_gScore
+                fScore[neighbor] = gScore[neighbor] + a_star_heuristic(neighbor, end)
+
+                open_set.put((fScore[neighbor], neighbor))
+                track_set.add(neighbor)
+
+            elif tentative_gScore >= gScore[neighbor]:
+                continue
+
+            came_from[neighbor] = current
+            gScore[neighbor] = tentative_gScore
+            fScore[neighbor] = gScore[neighbor] + a_star_heuristic(neighbor, end)
+
+    return 100000
+
 def nearest_neighbor(start, goals):
     result_list = []
 
@@ -278,7 +367,13 @@ def greedy(maze):
 def a_star_heuristic(spot, goals, maze):
     #Who knows
     #LUKASKNOWS
-    
+
+
+
+
+
+
+
     x_coord = spot
 
     left = []
