@@ -18,6 +18,7 @@ import sys
 import argparse
 import time
 
+
 from pygame.locals import *
 from agent import Agent
 from maze import Maze
