@@ -20,6 +20,7 @@ files and classes when code is run, so be careful to not modify anything else.
 # searchMethod is the search method specified by --method flag (bfs,dfs,greedy,astar)
 
 from queue import *
+import math
 #sdfsdf
 
 def search(maze, searchMethod):
@@ -260,11 +261,12 @@ def greedy(maze):
     return [], num_states_explored
 
 
-#https://en.wikipedia.org/wiki/A*_search_algorithm
+#https://en.wikipedia.org/wiki/A*_search_algorithms
 
 def a_star_heuristic(spot, end):
     #Who knows
-    return abs(spot[0]-end[0]) - abs(spot[1]-spot[1])
+    #Pythagorean distance
+    return math.hypot(spot[1] - end[1], spot[0] - end[0])
 
 def astar(maze):
 
