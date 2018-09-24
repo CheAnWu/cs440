@@ -20,8 +20,32 @@ files and classes when code is run, so be careful to not modify anything else.
 # searchMethod is the search method specified by --method flag (bfs,dfs,greedy,astar)
 
 from queue import *
-import math
-#sdfsdf
+
+
+def nearest_neighbor(start, goals):
+    result_list = []
+
+    new_start = start
+
+    while goals:
+
+        new_list = []
+        mini = -1
+        for i in goals:
+            new_list.append(distance_away(new_start, i))
+
+            mini = min(new_list)
+
+        index = 0
+        for i in range(0, len(new_list)):
+            if(new_list[i] == mini):
+                index = i
+                break
+
+        new_start = goals.pop(i)
+        result_list.append(new_start)
+
+    return result_list
 
 def search(maze, searchMethod):
     return {
@@ -33,38 +57,15 @@ def search(maze, searchMethod):
 
 
 def bfs(maze):
+
     #BFS is Implemented with a queue
     #A lot of code is borrowed from the Wiki for bfs
 
     #Initialize the num_states_explored as 0
     num_states_explored = 0
 
-    path = nearest_neighbor(maze.getStart(), maze.getObjectives())
-
-    total_path = []
-    start = maze.getStart()
-
-    while path:
-        end = path.pop(0)
-        return_value = bfs_path(start, end, maze)
-        total_path.append(return_value[0])
-        num_states_explored += return_value[1]
-        start = end
-
-    final_path = []
-    for i in total_path:
-        for j in range(0, len(i) - 1):
-            final_path.append(i[j])
-    last_path = total_path[len(total_path)-1]
-    last_spot = last_path[len(last_path)-1]
-    final_path.append(last_spot)
-    #print(final_path)
-    return final_path, num_states_explored
-
-
-def bfs_path(start, end, maze):
-    #Initialize the num_states_explored as 0
-    num_states_explored = 0
+    #This method returns an array of all objectives, this just grabs the first
+    end = maze.getObjectives()[0]
 
     #This is my fake queue
     open_set = list()
@@ -79,7 +80,7 @@ def bfs_path(start, end, maze):
 
     #Get starting point, initalize it's dict value so that we know when to stop
     #Going back and looking, putting it on the queue to start us off
-
+    start = maze.getStart()
     meta[start] = None
     open_set.append(start)
 
@@ -89,12 +90,12 @@ def bfs_path(start, end, maze):
         #Look at the first element in the queue, we now have started to explore
         #that state
         subroute = open_set.pop(0)
+        num_states_explored += 1
 
         #If it's our objective, that's all we need in an unweighted graph
         if (subroute == end):
             return make_path(subroute, meta),num_states_explored
 
-        num_states_explored += 1
         #Get the neighbors so we can check up on them eventually
         for neighbor in maze.getNeighbors(subroute[0], subroute[1]):
 
@@ -146,62 +147,7 @@ def make_path(spot, meta):
     return moves_made
 
 
-def nearest_neighbor(start, goals):
-    result_list = []
-
-    new_start = start
-
-    while goals:
-
-        new_list = []
-        mini = -1
-        for i in goals:
-            new_list.append(distance_away(new_start, i))
-
-            mini = min(new_list)
-
-        index = 0
-        for i in range(0, len(new_list)):
-            if(new_list[i] == mini):
-                index = i
-                break
-
-        new_start = goals.pop(i)
-        result_list.append(new_start)
-
-    return result_list
-
-
 def dfs(maze):
-
-    num_states_explored = 0
-
-    path = nearest_neighbor(maze.getStart(), maze.getObjectives())
-
-    total_path = []
-    start = maze.getStart()
-
-    while path:
-        end = path.pop(0)
-        return_value = dfs_path(start, end, maze)
-        total_path.append(return_value[0])
-        num_states_explored += return_value[1]
-        start = end
-
-    final_path = []
-    for i in total_path:
-        for j in range(0, len(i) - 1):
-            final_path.append(i[j])
-    last_path = total_path[len(total_path)-1]
-    last_spot = last_path[len(last_path)-1]
-    final_path.append(last_spot)
-    #print(final_path)
-    return final_path, num_states_explored
-
-
-
-def dfs_path(start, end, maze):
-
     #DFS is Implemented with a stack
     #A lot of code is borrowed from the Wiki for dfs
 
@@ -209,6 +155,7 @@ def dfs_path(start, end, maze):
     num_states_explored = 0
 
     #This method returns an array of all objectives, this just grabs the first
+    end = maze.getObjectives()[0]
 
     #This is my fake Stack
     open_set = list()
@@ -223,7 +170,7 @@ def dfs_path(start, end, maze):
 
     #Get starting point, initalize it's dict value so that we know when to stop
     #Going back and looking, putting it on the stack to start us off
-
+    start = maze.getStart()
     meta[start] = None
     open_set.append(start)
 
@@ -233,12 +180,12 @@ def dfs_path(start, end, maze):
         #Look at the most recently add coord in the stack, we now have started
         #to explore that state
         subroute = open_set.pop(len(open_set) - 1)
+        num_states_explored += 1
 
         #If it's our objective, that's all we need in an unweighted graph
         if (subroute == end):
             return make_path(subroute, meta),num_states_explored
 
-        num_states_explored += 1
         #Get the neighbors so we can check up on them eventually
         for neighbor in maze.getNeighbors(subroute[0], subroute[1]):
 
@@ -258,44 +205,18 @@ def dfs_path(start, end, maze):
     #coordinate
     return [], num_states_explored
 
-#https://www.geeksforgeeks.org/best-first-search-informed-search/
-
-
 def distance_away(spot, end):
     return abs(end[0]-spot[0]) + abs(end[1]-spot[1])
 
 
 def greedy(maze):
     #Greedy is Implemented with a PriorityQ
-    num_states_explored = 0
 
-    path = nearest_neighbor(maze.getStart(), maze.getObjectives())
-
-    total_path = []
-    start = maze.getStart()
-
-    while path:
-        end = path.pop(0)
-        return_value = greedy_path(start, end, maze)
-        total_path.append(return_value[0])
-        num_states_explored += return_value[1]
-        start = end
-
-    final_path = []
-    for i in total_path:
-        for j in range(0, len(i) - 1):
-            final_path.append(i[j])
-    last_path = total_path[len(total_path)-1]
-    last_spot = last_path[len(last_path)-1]
-    final_path.append(last_spot)
-    #print(final_path)
-    return final_path, num_states_explored
-
-def greedy_path(start, end, maze):
     #Initialize the num_states_explored as 0
     num_states_explored = 0
 
     #This method returns an array of all objectives, this just grabs the first
+    end = maze.getObjectives()[0]
 
     open_set = PriorityQueue()
 
@@ -307,16 +228,16 @@ def greedy_path(start, end, maze):
     #We can iterate through the dictionary backwards to get our backwards path
     meta = dict()
 
-    #This dictionary is to used keep the information needed to get the
-    #PriorityQ going, is a 3-tuple (distance from start using best path, manhattan distance)
     spot_information = dict()
 
     #Get starting point, initalize it's dict value so that we know when to stop
     #Going back and looking, putting it on the stack to start us off
+    start = maze.getStart()
     meta[start] = None
     spot_information[start] = (0, distance_away(start, end), 0)
 
-    #Priority Considers the sum of the cost to get there and Manhattan
+    print(start)
+
     open_set.put( (spot_information[start][0] + spot_information[start][1], start) )
 
     #While we can still explore
@@ -325,28 +246,24 @@ def greedy_path(start, end, maze):
         subroute = subroute_tuple[1]
 
         num_states_explored += 1
+        #print(subroute[1])
 
         if (subroute == end):
             return make_path(subroute, meta),num_states_explored
 
         for neighbor in maze.getNeighbors(subroute[0], subroute[1]):
 
-            #Update our information dictionary
             if(neighbor not in spot_information):
-                #Update dictionary using previous value and hueristic (Manhattan) and making it unvisited
                 spot_information[neighbor] = (spot_information[subroute][0] + 1 , distance_away(neighbor, end) , 0)
                 meta[neighbor] = subroute
 
-            #Our dictionary value needs to be replaced because we found a better route
             elif(spot_information[neighbor][0] > spot_information[subroute][0] + 1):
                 spot_information[neighbor] = (spot_information[subroute][0] + 1, distance_away(neighbor, end),spot_information[neighbor][2])
                 meta[neighbor] = subroute
 
-            #We've seen this before
             if(spot_information[neighbor][2] == 2):
                 continue
 
-            #We haven't looked at this yet
             if(spot_information[neighbor][2] == 0):
                 spot_information[neighbor] = (spot_information[neighbor][0], spot_information[neighbor][1], 1)
                 open_set.put( (spot_information[neighbor][0] + spot_information[neighbor][1], neighbor) )
@@ -359,43 +276,17 @@ def greedy_path(start, end, maze):
     #coordinate
     return [], num_states_explored
 
-
-#https://en.wikipedia.org/wiki/A*_search_algorithms
-
 def a_star_heuristic(spot, end):
     #Who knows
-    #Pythagorean distance
-    return math.hypot(spot[1] - end[1], spot[0] - end[0])
+    #LUKASKNOWS
+    return abs(spot[0]-end[0]) - abs(spot[1]-spot[1])
 
 def astar(maze):
 
     num_states_explored = 0
 
-    path = nearest_neighbor(maze.getStart(), maze.getObjectives())
-
-    total_path = []
+    end = maze.getObjectives()[0]
     start = maze.getStart()
-
-    while path:
-        end = path.pop(0)
-        return_value = astar_path(start, end, maze)
-        total_path.append(return_value[0])
-        num_states_explored += return_value[1]
-        start = end
-
-    final_path = []
-    for i in total_path:
-        for j in range(0, len(i) - 1):
-            final_path.append(i[j])
-    last_path = total_path[len(total_path)-1]
-    last_spot = last_path[len(last_path)-1]
-    final_path.append(last_spot)
-    #print(final_path)
-    return final_path, num_states_explored
-
-
-def astar_path(start, end, maze):
-    num_states_explored = 0
 
     closed_set = set()
 
@@ -429,26 +320,30 @@ def astar_path(start, end, maze):
 
     fScore[start] = a_star_heuristic(start, end)
 
-
-    open_set.put( (fScore[start], start) )
-    track_set.add(start)
+    open_set.put( (fScore[start], [start], goals.copy(), set() ) )
 
     while open_set:
         current_tuple = open_set.get(0)
 
-        current = current_tuple[1]
-        track_set.remove(current)
+        current_path = current_tuple[1]
+        current_goals = current_tuple[2]
+        visited = current_tuple[3]
+
+        last_spot = current_path[-1]
 
         num_states_explored += 1
 
-        if (current == end):
-            return make_path(current, came_from), num_states_explored
-            #return [], 0
+        if (last_spot in current_goals):
+            current_goals.remove(last_spot)
 
-        closed_set.add(current)
+
+        if(len(current_goals) == 0):
+            return current_path
+
+        visited.add(current)
 
         for neighbor in maze.getNeighbors(current[0], current[1]):
-            if neighbor in closed_set:
+            if neighbor in visited:
                 continue
 
             tentative_gScore = gScore[current] + 1
@@ -460,7 +355,6 @@ def astar_path(start, end, maze):
                 fScore[neighbor] = gScore[neighbor] + a_star_heuristic(neighbor, end)
 
                 open_set.put(  (fScore[neighbor], neighbor)  )
-                track_set.add(neighbor)
 
             elif tentative_gScore >= gScore[neighbor]:
                 continue
