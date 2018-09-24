@@ -21,8 +21,6 @@ files and classes when code is run, so be careful to not modify anything else.
 
 from queue import *
 
-<<<<<<< HEAD
-
 def nearest_neighbor(start, goals):
     result_list = []
 
@@ -47,8 +45,6 @@ def nearest_neighbor(start, goals):
         result_list.append(new_start)
 
     return result_list
-=======
->>>>>>> e7c914bf0c1996dc519c7ab41142f7a5c967228c
 
 def search(maze, searchMethod):
     return {
@@ -279,25 +275,72 @@ def greedy(maze):
     #coordinate
     return [], num_states_explored
 
-def a_star_heuristic(spot, end):
+def a_star_heuristic(spot, goals, maze):
     #Who knows
-    #LUKASDOESNTKNOW
-    return (abs(spot[0]-end[0]) ** 2 - abs(spot[1]-spot[1])** 2) ** 0.5
+    #LUKASKNOWS
+    
+    x_coord = spot
+
+    left = []
+    right = []
+
+    for i in goals:
+        if(i[0] < x_coord[0]):
+            left.append(i)
+        else:
+            right.append(i)
+
+    left_most = spot
+    for i in left:
+        if(abs(x_coord[0] - i[0]) > abs(x_coord[0] - left_most[0])):
+            left_most = i
+
+    right_most = spot
+    for i in right:
+        if(abs(x_coord[0] - i[0]) > abs(x_coord[0] - right_most[0])):
+            right_most = i
+
+    left_right_dist = -1
+    if( abs(x_coord[0] - right_most[0]) > abs(x_coord[0] - left_most[0])):
+        left_right_dist = abs(x_coord[0] - left_most[0])* 2 + abs(x_coord[0] - right_most[0])
+    else:
+        left_right_dist = abs(x_coord[0] - left_most[0]) + abs(x_coord[0] - right_most[0])*2
+
+
+    top = []
+    bot = []
+
+    for i in goals:
+        if(i[1] < x_coord[1]):
+            bot.append(i)
+        else:
+            top.append(i)
+
+    top_most = spot
+    for i in top:
+        if(abs(x_coord[1] - i[1]) > abs(x_coord[1] - top_most[1])):
+            top_most = i
+
+    bot_most = spot
+    for i in bot:
+        if(abs(x_coord[1] - i[1]) > abs(x_coord[1] - bot_most[1])):
+            bot = i
+
+    top_bot_dist = -1
+    if( abs(x_coord[0] - bot_most[0]) > abs(x_coord[0] - top_most[0])):
+        top_bot_dist = abs(x_coord[0] - top_most[0])* 2 + abs(x_coord[0] - bot_most[0])
+    else:
+        top_bot_dist = abs(x_coord[0] - top_most[0]) + abs(x_coord[0] - bot_most[0])*2
+
+    return left_right_dist + top_bot_dist
 
 def astar(maze):
 
     num_states_explored = 0
 
-    end = maze.getObjectives()[0]
     start = maze.getStart()
 
-    closed_set = set()
-
     open_set = PriorityQueue()
-    track_set = set()
-
-    came_from = dict()
-    came_from[start] = None
 
     gScore = dict()
 
@@ -321,11 +364,15 @@ def astar(maze):
             else:
                 fScore[(i, j)] = 10000000
 
-    fScore[start] = a_star_heuristic(start, end)
+    goals = maze.getObjectives()
+
+    fScore[start] = a_star_heuristic(start, goals, maze)
 
     open_set.put( (fScore[start], [start], goals.copy(), set() ) )
 
     while open_set:
+
+
         current_tuple = open_set.get(0)
 
         current_path = current_tuple[1]
@@ -334,36 +381,34 @@ def astar(maze):
 
         last_spot = current_path[-1]
 
+        print(current_path)
+        print("Goals: ", current_goals)
+
         num_states_explored += 1
 
         if (last_spot in current_goals):
             current_goals.remove(last_spot)
+            visited = set()
 
 
         if(len(current_goals) == 0):
-            return current_path
+            return current_path, 0
 
-        visited.add(current)
+        visited.add(last_spot)
 
-        for neighbor in maze.getNeighbors(current[0], current[1]):
+        for neighbor in maze.getNeighbors(last_spot[0], last_spot[1]):
             if neighbor in visited:
                 continue
 
-            tentative_gScore = gScore[current] + 1
+            neighbor_path  = current_path.copy()
+            neighbor_path.append(neighbor)
 
-            if neighbor not in track_set:
+            neighbor_goals = current_goals.copy()
 
-                came_from[neighbor] = current
-                gScore[neighbor] = tentative_gScore
-                fScore[neighbor] = gScore[neighbor] + a_star_heuristic(neighbor, end)
+            neighbor_visited = visited.copy()
 
-                open_set.put(  (fScore[neighbor], neighbor)  )
+            h_value = len(neighbor_path) + a_star_heuristic(neighbor, neighbor_goals, maze)
 
-            elif tentative_gScore >= gScore[neighbor]:
-                continue
-
-            came_from[neighbor] = current
-            gScore[neighbor] = tentative_gScore
-            fScore[neighbor] = gScore[neighbor] + a_star_heuristic(neighbor, end)
+            open_set.put( (h_value, neighbor_path, neighbor_goals, neighbor_visited ) )
 
     return [], 0
