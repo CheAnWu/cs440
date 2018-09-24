@@ -278,7 +278,13 @@ def greedy(maze):
 def a_star_heuristic(spot, goals, maze):
     #Who knows
     #LUKASKNOWS
-    
+
+
+
+
+
+
+
     x_coord = spot
 
     left = []
