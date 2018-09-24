@@ -33,15 +33,38 @@ def search(maze, searchMethod):
 
 
 def bfs(maze):
-
     #BFS is Implemented with a queue
     #A lot of code is borrowed from the Wiki for bfs
 
     #Initialize the num_states_explored as 0
     num_states_explored = 0
 
-    #This method returns an array of all objectives, this just grabs the first
-    end = maze.getObjectives()[0]
+    path = nearest_neighbor(maze.getStart(), maze.getObjectives())
+
+    total_path = []
+    start = maze.getStart()
+
+    while path:
+        end = path.pop(0)
+        return_value = bfs_path(start, end, maze)
+        total_path.append(return_value[0])
+        num_states_explored += return_value[1]
+        start = end
+
+    final_path = []
+    for i in total_path:
+        for j in range(0, len(i) - 1):
+            final_path.append(i[j])
+    last_path = total_path[len(total_path)-1]
+    last_spot = last_path[len(last_path)-1]
+    final_path.append(last_spot)
+    print(final_path)
+    return final_path, num_states_explored
+
+
+def bfs_path(start, end, maze):
+    #Initialize the num_states_explored as 0
+    num_states_explored = 0
 
     #This is my fake queue
     open_set = list()
@@ -56,7 +79,7 @@ def bfs(maze):
 
     #Get starting point, initalize it's dict value so that we know when to stop
     #Going back and looking, putting it on the queue to start us off
-    start = maze.getStart()
+
     meta[start] = None
     open_set.append(start)
 
@@ -66,12 +89,12 @@ def bfs(maze):
         #Look at the first element in the queue, we now have started to explore
         #that state
         subroute = open_set.pop(0)
-        num_states_explored += 1
 
         #If it's our objective, that's all we need in an unweighted graph
         if (subroute == end):
             return make_path(subroute, meta),num_states_explored
 
+        num_states_explored += 1
         #Get the neighbors so we can check up on them eventually
         for neighbor in maze.getNeighbors(subroute[0], subroute[1]):
 
@@ -121,6 +144,32 @@ def make_path(spot, meta):
     moves_made.reverse()
 
     return moves_made
+
+
+def nearest_neighbor(start, goals):
+    result_list = []
+
+    new_start = start
+
+    while goals:
+
+        new_list = []
+        mini = -1
+        for i in goals:
+            new_list.append(a_star_heuristic(new_start, i))
+
+            mini = min(new_list)
+
+        index = 0
+        for i in range(0, len(new_list)):
+            if(new_list[i] == mini):
+                index = i
+                break
+
+        new_start = goals.pop(i)
+        result_list.append(new_start)
+
+    return result_list
 
 
 def dfs(maze):
