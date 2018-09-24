@@ -21,6 +21,7 @@ files and classes when code is run, so be careful to not modify anything else.
 
 from queue import *
 
+<<<<<<< HEAD
 
 def nearest_neighbor(start, goals):
     result_list = []
@@ -46,6 +47,8 @@ def nearest_neighbor(start, goals):
         result_list.append(new_start)
 
     return result_list
+=======
+>>>>>>> e7c914bf0c1996dc519c7ab41142f7a5c967228c
 
 def search(maze, searchMethod):
     return {
