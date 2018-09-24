@@ -156,7 +156,7 @@ def nearest_neighbor(start, goals):
         new_list = []
         mini = -1
         for i in goals:
-            new_list.append(a_star_heuristic(new_start, i))
+            new_list.append(distance_away(new_start, i))
 
             mini = min(new_list)
 
