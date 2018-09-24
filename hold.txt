@@ -1,0 +1,79 @@
+def astar(maze):
+
+    num_states_explored = 0
+
+    start = maze.getStart()
+
+    open_set = PriorityQueue()
+
+
+    came_from = dict()
+    came_from[start] = None
+
+    gScore = dict()
+
+    dimensions = maze.getDimensions()
+
+    for i in range(0, dimensions[0]):
+        for j in range(0, dimensions[1]):
+            if(maze.isWall(i, j)):
+                gScore[(i, j)] = -1
+            else:
+                gScore[(i, j)] = 10000000
+
+    #gScore[[start]] = 0
+
+    fScore = dict()
+
+    for i in range(0, dimensions[0]):
+        for j in range(0, dimensions[1]):
+            if(maze.isWall(i, j)):
+                fScore[(i, j)] = -1
+            else:
+                fScore[(i, j)] = 10000000
+
+    goals = maze.getObjectives()
+
+    fScore[start] = a_star_heuristic(start, goals)
+
+    open_set.put( (fScore[start], [start], goals, set()) )
+
+
+    while open_set:
+        current_tuple = open_set.get(0)
+
+        own_fscore = current_tuple[0]
+        own_path = current_tuple[1].copy()
+        own_goals = current_tuple[2].copy()
+        own_set = current_tuple[3].copy()
+
+        current_spot = own_path[len(own_path) - 1]
+
+
+        if (current_spot in own_goals):
+            own_goals.remove(current_spot)
+            own_set = set()
+
+        if(len(own_goals) == 0):
+            return own_path, 0
+
+
+        own_set.add(current_spot)
+
+        for neighbor in maze.getNeighbors(current_spot[0], current_spot[1]):
+            if neighbor in own_set:
+                continue
+
+
+
+            neighbor_path = own_path.copy()
+
+            neighbor_path.append(neighbor)
+
+            tentative_gScore = len(neighbor_path)
+
+            fScore = tentative_gScore + a_star_heuristic(neighbor, own_goals)
+
+            open_set.put(  (fScore, neighbor_path, own_goals, own_set)  )
+
+    return [], 0

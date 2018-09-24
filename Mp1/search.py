@@ -21,6 +21,34 @@ files and classes when code is run, so be careful to not modify anything else.
 
 from queue import *
 
+<<<<<<< HEAD
+
+def nearest_neighbor(start, goals):
+    result_list = []
+
+    new_start = start
+
+    while goals:
+
+        new_list = []
+        mini = -1
+        for i in goals:
+            new_list.append(distance_away(new_start, i))
+
+            mini = min(new_list)
+
+        index = 0
+        for i in range(0, len(new_list)):
+            if(new_list[i] == mini):
+                index = i
+                break
+
+        new_start = goals.pop(i)
+        result_list.append(new_start)
+
+    return result_list
+=======
+>>>>>>> e7c914bf0c1996dc519c7ab41142f7a5c967228c
 
 def search(maze, searchMethod):
     return {
@@ -295,26 +323,30 @@ def astar(maze):
 
     fScore[start] = a_star_heuristic(start, end)
 
-
-    open_set.put( (fScore[start], start) )
-    track_set.add(start)
+    open_set.put( (fScore[start], [start], goals.copy(), set() ) )
 
     while open_set:
         current_tuple = open_set.get(0)
 
-        current = current_tuple[1]
-        track_set.remove(current)
+        current_path = current_tuple[1]
+        current_goals = current_tuple[2]
+        visited = current_tuple[3]
+
+        last_spot = current_path[-1]
 
         num_states_explored += 1
 
-        if (current == end):
-            return make_path(current, came_from), num_states_explored
-            #return [], 0
+        if (last_spot in current_goals):
+            current_goals.remove(last_spot)
 
-        closed_set.add(current)
+
+        if(len(current_goals) == 0):
+            return current_path
+
+        visited.add(current)
 
         for neighbor in maze.getNeighbors(current[0], current[1]):
-            if neighbor in closed_set:
+            if neighbor in visited:
                 continue
 
             tentative_gScore = gScore[current] + 1
@@ -326,7 +358,6 @@ def astar(maze):
                 fScore[neighbor] = gScore[neighbor] + a_star_heuristic(neighbor, end)
 
                 open_set.put(  (fScore[neighbor], neighbor)  )
-                track_set.add(neighbor)
 
             elif tentative_gScore >= gScore[neighbor]:
                 continue
