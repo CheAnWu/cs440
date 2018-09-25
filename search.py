@@ -485,7 +485,7 @@ def a_star_heuristic(spot, goals, maze):
     else:
         top_bot_dist = abs(x_coord[0] - top_most[0]) + abs(x_coord[0] - bot_most[0])*2
 
-    return 3*(left_right_dist + top_bot_dist)
+    return 1.8*(left_right_dist + top_bot_dist)
 
 def astar(maze):
 
@@ -497,14 +497,18 @@ def astar(maze):
 
     gScore = dict()
 
+    seen = dict()
+
     dimensions = maze.getDimensions()
 
     for i in range(0, dimensions[0]):
         for j in range(0, dimensions[1]):
             if(maze.isWall(i, j)):
                 gScore[(i, j)] = -1
+
             else:
                 gScore[(i, j)] = 10000000
+                seen[(i, j)] = False
 
     gScore[start] = 0
 
@@ -536,21 +540,23 @@ def astar(maze):
 
     while open_set:
 
-
         current_tuple = open_set.get(0)
 
         current_path = current_tuple[1]
         current_goals = current_tuple[2]
 
-        print("goals:", current_goals)
+        #print("goals:", current_goals)
         visited = current_tuple[3]
 
         last_spot = current_path[-1]
 
+        if(seen[last_spot] == False):
+            num_states_explored += 1
+            print(num_states_explored)
+            seen[last_spot] = True
+
         #print(current_path)
         #print("Goals: ", current_goals)
-
-        num_states_explored += 1
 
         if (last_spot in current_goals):
             current_goals.remove(last_spot)
@@ -558,7 +564,7 @@ def astar(maze):
 
 
         if(len(current_goals) == 0):
-            return current_path, 0
+            return current_path, num_states_explored
 
         visited.add(last_spot)
 
