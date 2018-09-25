@@ -142,11 +142,11 @@ def nearest_neighbor(start, goals):
 
 def search(maze, searchMethod):
     return {
-        "bfs": bfs(maze),
-        "dfs": dfs(maze),
-        "greedy": greedy(maze),
-        "astar": astar(maze),
-    }.get(searchMethod, [])
+        "bfs": bfs,
+        "dfs": dfs,
+        "greedy": greedy,
+        "astar": astar,
+    }.get(searchMethod)(maze)
 
 
 def bfs(maze):
@@ -429,9 +429,6 @@ def a_star_heuristic(spot, goals, maze):
     '''
 
 
-
-
-
     x_coord = spot
 
     left = []
@@ -485,7 +482,7 @@ def a_star_heuristic(spot, goals, maze):
     else:
         top_bot_dist = abs(x_coord[0] - top_most[0]) + abs(x_coord[0] - bot_most[0])*2
 
-    return 1.8*(left_right_dist + top_bot_dist)
+    return 100*(left_right_dist + top_bot_dist)
 
 def astar(maze):
 
