@@ -59,7 +59,7 @@ def doesArmTouchObstacles(armPos, obstacles):
             closestPointOnLine = closestPointOnLineHelper(joint, obstacle)
 
             if(isPointOnArmLine(closestPointOnLine, joint)):
-                print(closestPointOnLine)
+                # print(closestPointOnLine)
                 if(doesPointTouchCircle(closestPointOnLine, obstacle) ):
                     print("BAD TOUCH")
                     return True
