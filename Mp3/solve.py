@@ -69,6 +69,7 @@ def findValuesHelper(constraintAxis, dimension):
 
 
 def solve(constraints):
+    print("We starting")
     """
     Implement me!!!!!!!
     This function takes in a set of constraints. The first dimension is the axis
@@ -148,13 +149,15 @@ def solve(constraints):
 
     for i in rowValues:
         print(i)
+    for j in colValues:
+        print(j)
 
 
 
 
 
 
-
+    """
     solution = np.zeros((dim0, dim1))
     solution.fill(-1)
 
@@ -169,11 +172,14 @@ def solve(constraints):
         for tuple in curr_list:
             totalDots += tuple[0]
         numIterations = 1 + dim0 - (len(curr_list) - 1 + totalDots)
+    """
 
 
 
 
-    return np.random.randint(2, size=(dim0, dim1))
+    return 1
+
+        #np.random.randint(2, size=(dim0, dim1))
 
 
 

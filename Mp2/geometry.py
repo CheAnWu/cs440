@@ -12,12 +12,12 @@ This file contains geometry functions that relate with Part1 in MP2.
 """
 
 import math
-import numpy as np
 from const import *
+import numpy as np
 import time
 
 def computeCoordinate(start, length, angle):
-    """Compute the end cooridinate based on the given start position, length and angle.
+    """Compute the end coordinate based on the given start position, length and angle.
 
         Args:
             start (tuple): base of the arm link. (x-coordinate, y-coordinate)
@@ -127,7 +127,6 @@ def doesArmTouchGoals(armEnd, goals):
         Return:
             True if touched. False it not.
     """
-
     for goal in goals:
         if(doesPointTouchCircle(armEnd, goal) == True):
             return True
