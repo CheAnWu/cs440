@@ -2,43 +2,45 @@ import numpy as np
 
 
 #passes in a row/col from the constraints list and returns all possible configurations
-def findPossibleValues(result, state, pointsNeeded, zerosAdded, dimension):
-    pointsRemaining = 0
-    for val in pointsNeeded:
-        pointsRemaining += val[0]
+def findPossibleValues(result, state, pointsNeeded, dimension):
 
-    if((pointsRemaining + zerosAdded + (len(pointsNeeded) - 1)) > dimension):
+    if(len(state) > dimension):
         return result
 
+    #constraints satisfied. Fill with 0s and return
+    if(len(pointsNeeded) == 0):
+        while(len(state) < dimension):
+            state.append(0)
+        result.append(state)
+        return result
 
-    #add 1 element to next spot
-    if(len(pointsNeeded) != 0):
+    # add '1' elements and recurse
+    a = state.copy()
+    aPointsNeeded = pointsNeeded.copy()
+    for i in range(pointsNeeded[0][0]):
+        a.append(1)
+    del aPointsNeeded[0]
 
-        a = state.copy()
-        for i in range(pointsNeeded[0][0]):
-            a.append(1)
-        del pointsNeeded[0]
+    # too big, this route doesn't work
+    if (len(a) > dimension):
+        return result
 
-        #too big, this route doesn't work
-        if(len(a) > dimension):
+    # snug fit and done
+    if (len(a) == dimension):
+        if (len(aPointsNeeded) == 0):
+            result.append(a)
             return result
-        #snug fit and done
-        if( len(a) == dimension):
-            if(len(pointsNeeded) == 0):
-                result.append(a)
-                return result
-            else:
-                return result
+        else:
+            return result
 
-        #not completed, recursive case
-        a.append(0)
-        resultA = findPossibleValues(result, a, pointsNeeded, zerosAdded + 1, dimension)
+    a.append(0)
+    result = findPossibleValues([], a, aPointsNeeded.copy(), dimension)
 
 
     #add a 0 eleemnt to next spot
     b = state.copy()
     b.append(0)
-    zerosAdded += 1
+
     # snug fit and done
     if (len(b) == dimension):
         if (len(pointsNeeded) == 0):
@@ -47,22 +49,21 @@ def findPossibleValues(result, state, pointsNeeded, zerosAdded, dimension):
         else:
             return result
 
-    resultB = findPossibleValues(result, b, pointsNeeded, zerosAdded, dimension)
+    resultB = findPossibleValues([], b, pointsNeeded.copy(), dimension)
 
-    in_A = set(resultA)
-    in_B = set(resultB)
-    in_B_not_A = in_B - in_A
+    for val in resultB:
+        result.append(val)
 
-    result = resultA + list(in_B_not_A)
     return result
 
 
 def findValuesHelper(constraintAxis, dimension):
     values = []
     for val in constraintAxis:
-        curr_list = val.copy()
-        temp = []
-        values.append(findPossibleValues(temp, temp, curr_list, 0, dimension))
+        curr_list = findPossibleValues([], [], val.copy(), dimension)
+        values.append(curr_list)
+
+
     return values
 
 
@@ -86,7 +87,7 @@ def solve(constraints):
 	
     
 	array([
-		[list([[4, 1]]), 
+		[, 
 		 list([[1, 1], [1, 1], [1, 1]]),
          list([[3, 1], [1, 1]]), 
 		 list([[2, 1]]), 
@@ -141,39 +142,19 @@ def solve(constraints):
 
 
     """
+    print(constraints)
     dim0 = len(constraints[0])
     dim1 = len(constraints[1])
+    print(dim0)
+    print(dim1)
 
-    rowValues = findValuesHelper(constraints[0], dim0)
-    colValues = findValuesHelper(constraints[1], dim1)
+    rowValues = findValuesHelper(constraints[0], dim1)
+    colValues = findValuesHelper(constraints[1], dim0)
 
     for i in rowValues:
         print(i)
     for j in colValues:
         print(j)
-
-
-
-
-
-
-    """
-    solution = np.zeros((dim0, dim1))
-    solution.fill(-1)
-
-    notComplete = True
-    rowsArray = np.array(dim0)
-
-    #for counting how much possible starting values it could have
-    #go through rows
-    for i in range(dim0):
-        curr_list = constraints[0][i]
-        totalDots = 0
-        for tuple in curr_list:
-            totalDots += tuple[0]
-        numIterations = 1 + dim0 - (len(curr_list) - 1 + totalDots)
-    """
-
 
 
 
