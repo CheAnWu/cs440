@@ -1,4 +1,5 @@
 import numpy as np
+from queue import PriorityQueue
 
 
 #passes in a row/col from the constraints list and returns all possible configurations
@@ -67,8 +68,6 @@ def findValuesHelper(constraintAxis, dimension):
     return values
 
 
-
-
 def solve(constraints):
     print("We starting")
     """
@@ -87,7 +86,7 @@ def solve(constraints):
 	
     
 	array([
-		[, 
+		[list([[4, 1]]), 
 		 list([[1, 1], [1, 1], [1, 1]]),
          list([[3, 1], [1, 1]]), 
 		 list([[2, 1]]), 
@@ -142,27 +141,62 @@ def solve(constraints):
 
 
     """
-    print(constraints)
     dim0 = len(constraints[0])
     dim1 = len(constraints[1])
-    print(dim0)
-    print(dim1)
 
     rowValues = findValuesHelper(constraints[0], dim1)
     colValues = findValuesHelper(constraints[1], dim0)
 
-    for i in rowValues:
-        print(i)
-    for j in colValues:
-        print(j)
+    solutionMatrix = np.zeros(dim0, dim1)
+
+    # Prioritized queue for order of adding to solution matrix based on possibilities
+    # Each tuple has the (number of possibilities, index of either col or row, boolean is row)
+    checkOrder = PriorityQueue()
+
+    i = 0
+    for rowIndex in rowValues:
+        possibilities = len(rowIndex)
+        if possibilities == 1:
+            solutionMatrix[i] = rowIndex[0]
+        else:
+            checkOrder.put((possibilities,  i, True))
+            i += 1
+
+    i = 0
+    for colIndex in colValues:
+        possibilities = len(colIndex)
+        if possibilities == 1:
+            solutionMatrix[:, i] = colIndex[0]
+        else:
+            checkOrder.put((possibilities, i, False))
+            i += 1
+
+    checkedValues = []
+
+    while not checkOrder.empty():
+        nextVal = checkOrder.get()
 
 
+
+
+
+    """
+    solution = np.zeros((dim0, dim1))
+    solution.fill(-1)
+
+    notComplete = True
+    rowsArray = np.array(dim0)
+
+    #for counting how much possible starting values it could have
+    #go through rows
+    for i in range(dim0):
+        curr_list = constraints[0][i]
+        totalDots = 0
+        for tuple in curr_list:
+            totalDots += tuple[0]
+        numIterations = 1 + dim0 - (len(curr_list) - 1 + totalDots)
+    """
 
     return 1
 
-        #np.random.randint(2, size=(dim0, dim1))
-
-
-
-
-
+    # np.random.randint(2, size=(dim0, dim1))
