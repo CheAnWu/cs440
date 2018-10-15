@@ -2,15 +2,14 @@ import numpy as np
 from queue import PriorityQueue
 
 
-#passes in a row/col from the constraints list and returns all possible configurations
+# passes in a row/col from the constraints list and returns all possible configurations
 def findPossibleValues(result, state, pointsNeeded, dimension):
-
-    if(len(state) > dimension):
+    if (len(state) > dimension):
         return result
 
-    #constraints satisfied. Fill with 0s and return
-    if(len(pointsNeeded) == 0):
-        while(len(state) < dimension):
+    # constraints satisfied. Fill with 0s and return
+    if (len(pointsNeeded) == 0):
+        while (len(state) < dimension):
             state.append(0)
         result.append(state)
         return result
@@ -37,8 +36,7 @@ def findPossibleValues(result, state, pointsNeeded, dimension):
     a.append(0)
     result = findPossibleValues([], a, aPointsNeeded.copy(), dimension)
 
-
-    #add a 0 eleemnt to next spot
+    # add a 0 eleemnt to next spot
     b = state.copy()
     b.append(0)
 
@@ -63,7 +61,6 @@ def findValuesHelper(constraintAxis, dimension):
     for val in constraintAxis:
         curr_list = findPossibleValues([], [], val.copy(), dimension)
         values.append(curr_list)
-
 
     return values
 
@@ -159,7 +156,7 @@ def solve(constraints):
         if possibilities == 1:
             solutionMatrix[i] = rowIndex[0]
         else:
-            checkOrder.put((possibilities,  i, True))
+            checkOrder.put((possibilities, i, True))
             i += 1
 
     i = 0
@@ -175,10 +172,6 @@ def solve(constraints):
 
     while not checkOrder.empty():
         nextVal = checkOrder.get()
-
-
-
-
 
     """
     solution = np.zeros((dim0, dim1))

@@ -29,15 +29,17 @@ def computeCoordinate(start, length, angle):
     """
 
     #Change this line, only to check if program actually works with human input
-    angle = angle /100.0
+    # angle = angle /100.0
+    angle = math.radians(angle)
 
-    delta_x = length * math.cos(angle)
-    delta_y = length * math.sin(angle)
 
-    new_x = start[0] + delta_x
-    new_y = start[1] - delta_y
+    delX = length * math.cos(angle)
+    delY = length * math.sin(angle)
 
-    return (new_x, new_y)
+    endX = start[0] + delX
+    endY = start[1] - delY
+
+    return (endX, endY)
 
 def doesArmTouchObstacles(armPos, obstacles):
     """Determine whether the given arm links touch obstacles
