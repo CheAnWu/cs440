@@ -65,6 +65,36 @@ def findValuesHelper(constraintAxis, dimension):
     return values
 
 
+def leastConstrainingValue(solutionMatrix, tuple):
+    minInconsistencies = 999
+    index = -1
+    curr_solution = 0
+
+    if(tuple[2]):
+        curr_solution = solutionMatrix[tuple[1]]
+    else:
+        curr_solution = solutionMatrix[:, tuple[1]]
+
+    for i in range(len(tuple)):
+        val = tuple[i][0]
+        inconsistencies = countInconsistencies(curr_solution, val)
+
+        if (inconsistencies < minInconsistencies):
+            index = i
+            minInconsistencies = inconsistencies
+
+    return index, minInconsistencies
+
+
+def countInconsistencies(solutionArray, val):
+    inconsistencies = 0;
+    for i in range(len(solutionArray)):
+        if(solutionArray[i] != val[i]):
+            inconsistencies += 1
+    return inconsistencies
+
+
+
 def solve(constraints):
     print("We starting")
     """
@@ -144,7 +174,7 @@ def solve(constraints):
     rowValues = findValuesHelper(constraints[0], dim1)
     colValues = findValuesHelper(constraints[1], dim0)
 
-    solutionMatrix = np.zeros(dim0, dim1)
+    solutionMatrix = np.zeros((dim0, dim1))
 
     # Prioritized queue for order of adding to solution matrix based on possibilities
     # Each tuple has the (number of possibilities, index of either col or row, boolean is row)
@@ -173,23 +203,21 @@ def solve(constraints):
     while not checkOrder.empty():
         nextVal = checkOrder.get()
 
-    """
-    solution = np.zeros((dim0, dim1))
-    solution.fill(-1)
+        #do we even need to concern ourselves with num inconsistencies?
+        index, inconsistencies = leastConstrainingValue(solutionMatrix, nextVal)
 
-    notComplete = True
-    rowsArray = np.array(dim0)
+        #will have to figure it out for cols
+        if(nextVal[2]):
+            solutionMatrix[nextVal[1]] = nextVal[0[index]]
+            #add all col tuples to priority queue
+        #else
+            #change a col in solution matrix
+            #add all row tuples to priority q
 
-    #for counting how much possible starting values it could have
-    #go through rows
-    for i in range(dim0):
-        curr_list = constraints[0][i]
-        totalDots = 0
-        for tuple in curr_list:
-            totalDots += tuple[0]
-        numIterations = 1 + dim0 - (len(curr_list) - 1 + totalDots)
-    """
+        #have to keep track of order we've changed the solution matrix. If we backtrack the other options should reappear
+        #i.e. take values from the rowValues/colValues
+
+
 
     return 1
-
-    # np.random.randint(2, size=(dim0, dim1))
+    #np.random.randint(2, size=(dim0, dim1))
