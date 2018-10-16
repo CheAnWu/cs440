@@ -138,13 +138,15 @@ def solve(constraints):
 
 
     """
+
     dim0 = len(constraints[0])
     dim1 = len(constraints[1])
 
     rowValues = findValuesHelper(constraints[0], dim1)
     colValues = findValuesHelper(constraints[1], dim0)
 
-    solutionMatrix = np.zeros(dim0, dim1)
+    solutionMatrix = np.empty((dim0, dim1))
+    solutionMatrix.fill(-1)
 
     # Prioritized queue for order of adding to solution matrix based on possibilities
     # Each tuple has the (number of possibilities, index of either col or row, boolean is row)
@@ -155,18 +157,29 @@ def solve(constraints):
         possibilities = len(rowIndex)
         if possibilities == 1:
             solutionMatrix[i] = rowIndex[0]
-        else:
-            checkOrder.put((possibilities, i, True))
-            i += 1
+        i += 1
 
     i = 0
     for colIndex in colValues:
         possibilities = len(colIndex)
         if possibilities == 1:
             solutionMatrix[:, i] = colIndex[0]
-        else:
-            checkOrder.put((possibilities, i, False))
-            i += 1
+        i += 1
+
+    # toss out impossible values
+    removeImpossibleValues(colValues, rowValues, solutionMatrix)
+
+    i = 0
+    for rowIndex in rowValues:
+        possibilities = len(rowIndex)
+        checkOrder.put((possibilities, i, True))
+        i += 1
+
+    i = 0
+    for colIndex in colValues:
+        possibilities = len(colIndex)
+        checkOrder.put((possibilities, i, False))
+        i += 1
 
     checkedValues = []
 
@@ -193,3 +206,24 @@ def solve(constraints):
     return 1
 
     # np.random.randint(2, size=(dim0, dim1))
+
+
+def removeImpossibleValues(colValues, rowValues, solutionMatrix):
+    i = 0
+    for rowIndex in rowValues:
+        for possibilityIndex in range(len(rowIndex)):
+            testval = rowIndex[possibilityIndex]
+            assert len(testval) == len(solutionMatrix[i])
+            for k in range(len(solutionMatrix[i])):
+                if solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != testval[k]:
+                    rowIndex.pop(possibilityIndex)
+        i += 1
+    i = 0
+    for colIndex in colValues:
+        for possibilityIndex in range(len(colIndex)):
+            testval = colIndex[possibilityIndex]
+            assert len(testval) == len(solutionMatrix[:, i])
+            for k in range(len(solutionMatrix[:, i])):
+                if solutionMatrix[:, i][k] != -1 and solutionMatrix[:, i][k] != testval[k]:
+                    colIndex.pop(possibilityIndex)
+        i += 1
