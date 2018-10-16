@@ -203,38 +203,78 @@ def solve(constraints):
     i = 0
     for rowIndex in rowValues:
         possibilities = len(rowIndex)
-        checkOrder.put((possibilities, i, True, (-1, True, [])))
+        checkOrder.put((possibilities, i, True, []))
         i += 1
 
     i = 0
     for colIndex in colValues:
         possibilities = len(colIndex)
-        checkOrder.put((possibilities, i, False, (-1, True, [])))
+        checkOrder.put((possibilities, i, False, []))
         i += 1
 
-    checkedValues = []
+    for rowIndex in range(len(rowValues)):
+        solutionMatrix[rowIndex] = rowValues[rowIndex][0]
+
+
+    checkedValueStack = []
 
     while not checkOrder.empty():
-        nextVal = checkOrder.get()
+        currTuple = checkOrder.get()
+        varIndex = currTuple[1]
+        isRow = currTuple[2]
+        attempted = currTuple[3]
+        toAttempt = [x for x in range(currTuple[0]) if x not in attempted]
 
+        leastConstrainedValueIndex, inconsistencies = leastConstrainingValue(solutionMatrix, currTuple)
+        if leastConstrainedValueIndex not in attempted:
+            toAttempt.remove(leastConstrainedValueIndex)
+            toAttempt.insert(0, leastConstrainedValueIndex) # try least constrained value first
 
-        #do we even need to concern ourselves with num inconsistencies?
-        index, inconsistencies = leastConstrainingValue(solutionMatrix, nextVal)
+        if isRow:
+            solutionFound = False
+            for x in toAttempt:
+                array = rowValues[varIndex][x]
+                attempted.append(x)
+                arrayFits = True
+                for i in range(len(solutionMatrix[varIndex])):
+                    if solutionMatrix[varIndex][i] != array[i]:
+                        arrayFits = False
+                if arrayFits:
+                    solutionMatrix[varIndex] = array
+                    solutionFound = True
+                    currTuple[3] = attempted
+                    checkedValueStack.append(currTuple)
+                    break
+            if not solutionFound:
+                # backtrack
+                currTuple[3] = []
+                checkOrder.put(currTuple)
+                prevTuple = checkedValueStack.pop()
+                checkOrder.put(prevTuple)
 
-        #will have to figure it out for cols
-        if(nextVal[2]):
-            solutionMatrix[nextVal[1]] = nextVal[0[index]]
-            #add all col tuples to priority queue
-        #else
-            #change a col in solution matrix
-
-            #add all row tuples to priority q
-        #have to keep track of order we've changed the solution matrix. If we backtrack the other options should reappear
-        #i.e. take values from the rowValues/colValues
+        else:
+            solutionFound = False
+            for x in toAttempt:
+                array = colValues[varIndex][x]
+                attempted.append(x)
+                arrayFits = True
+                for i in range(len(solutionMatrix[:, varIndex])):
+                    if solutionMatrix[:, varIndex][i] != array[i]:
+                        arrayFits = False
+                if arrayFits:
+                    solutionMatrix[:, varIndex] = array
+                    solutionFound = True
+                    currTuple[3] = attempted
+                    checkedValueStack.append(currTuple)
+                    break
+            if not solutionFound:
+                # backtrack
+                currTuple[3] = []
+                checkOrder.put(currTuple)
+                prevTuple = checkedValueStack.pop()
+                checkOrder.put(prevTuple)
 
     return 1
-
-    # np.random.randint(2, size=(dim0, dim1))
 
 
 def removeImpossibleValues(colValues, rowValues, solutionMatrix):
@@ -246,6 +286,7 @@ def removeImpossibleValues(colValues, rowValues, solutionMatrix):
             for k in range(len(solutionMatrix[i])):
                 if solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != testval[k]:
                     rowIndex.pop(possibilityIndex)
+                    break
         i += 1
     i = 0
     for colIndex in colValues:
@@ -255,4 +296,5 @@ def removeImpossibleValues(colValues, rowValues, solutionMatrix):
             for k in range(len(solutionMatrix[:, i])):
                 if solutionMatrix[:, i][k] != -1 and solutionMatrix[:, i][k] != testval[k]:
                     colIndex.pop(possibilityIndex)
+                    break
         i += 1
