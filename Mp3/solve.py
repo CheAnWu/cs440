@@ -179,7 +179,8 @@ def solve(constraints):
     solutionMatrix.fill(-1)
 
     # Prioritized queue for order of adding to solution matrix based on possibilities
-    # Each tuple has the (number of possibilities, index of either col or row, boolean is row)
+    # Each tuple has the (number of possibilities, variable index, boolean is row,
+    #  (previous variable index, prev is row, list of value indexes tried))
     checkOrder = PriorityQueue()
 
     i = 0
@@ -202,13 +203,13 @@ def solve(constraints):
     i = 0
     for rowIndex in rowValues:
         possibilities = len(rowIndex)
-        checkOrder.put((possibilities, i, True))
+        checkOrder.put((possibilities, i, True, (-1, True, [])))
         i += 1
 
     i = 0
     for colIndex in colValues:
         possibilities = len(colIndex)
-        checkOrder.put((possibilities, i, False))
+        checkOrder.put((possibilities, i, False, (-1, True, [])))
         i += 1
 
     checkedValues = []
@@ -226,6 +227,7 @@ def solve(constraints):
             #add all col tuples to priority queue
         #else
             #change a col in solution matrix
+
             #add all row tuples to priority q
         #have to keep track of order we've changed the solution matrix. If we backtrack the other options should reappear
         #i.e. take values from the rowValues/colValues
