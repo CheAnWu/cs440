@@ -36,7 +36,7 @@ def findPossibleValues(result, state, pointsNeeded, dimension):
     a.append(0)
     result = findPossibleValues([], a, aPointsNeeded.copy(), dimension)
 
-    # add a 0 eleemnt to next spot
+    # add a 0 element to next spot
     b = state.copy()
     b.append(0)
 
@@ -65,25 +65,19 @@ def findValuesHelper(constraintAxis, dimension):
     return values
 
 
-def leastConstrainingValue(solutionMatrix, tuple):
+def leastConstrainingValue(solutionArray, variable):
     minInconsistencies = 999
     index = -1
-    curr_solution = 0
 
-    if(tuple[2]):
-        curr_solution = solutionMatrix[tuple[1]]
-    else:
-        curr_solution = solutionMatrix[:, tuple[1]]
-
-    for i in range(len(tuple)):
-        val = tuple[i][0]
-        inconsistencies = countInconsistencies(curr_solution, val)
+    for i in range(len(variable)):
+        val = variable[i]
+        inconsistencies = countInconsistencies(solutionArray, val)
 
         if (inconsistencies < minInconsistencies):
             index = i
             minInconsistencies = inconsistencies
 
-    return index, minInconsistencies
+    return index
 
 
 def countInconsistencies(solutionArray, val):
@@ -94,9 +88,67 @@ def countInconsistencies(solutionArray, val):
     return inconsistencies
 
 
+def fillSolutionMatrixWithDefiniteValues(rowVariables, colVariables, solutionMatrix):
+    i = 0
+    for rowIndex in rowVariables:
+        possibilities = len(rowIndex)
+        if possibilities == 1:
+            solutionMatrix[i] = rowIndex[0]
+        i += 1
+
+    i = 0
+    for colIndex in colVariables:
+        possibilities = len(colIndex)
+        if possibilities == 1:
+            solutionMatrix[:, i] = colIndex[0]
+        i += 1
+
+    return solutionMatrix
+
+
+
+def removeImpossibleValues(colVariables, rowVariables, solutionMatrix):
+    i = 0
+    for rowIndex in rowVariables:
+        for possibilityIndex in range(len(rowIndex)):
+            testval = rowIndex[possibilityIndex]
+            assert len(testval) == len(solutionMatrix[i])
+            for k in range(len(solutionMatrix[i])):
+                if solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != testval[k]:
+                    rowIndex.pop(possibilityIndex)
+                    break
+        i += 1
+    i = 0
+    for colIndex in colVariables:
+        for possibilityIndex in range(len(colIndex)):
+            testval = colIndex[possibilityIndex]
+            assert len(testval) == len(solutionMatrix[:, i])
+            for k in range(len(solutionMatrix[:, i])):
+                if solutionMatrix[:, i][k] != -1 and solutionMatrix[:, i][k] != testval[k]:
+                    colIndex.pop(possibilityIndex)
+                    break
+        i += 1
+
+    return solutionMatrix
+
+def addAllTuplesToQueue(rowVariables, colVariables, checkOrder):
+    i = 0
+    for rowIndex in rowVariables:
+        possibilities = len(rowIndex)
+        checkOrder.put((possibilities, i, True, []))
+        i += 1
+
+    i = 0
+    for colIndex in colVariables:
+        possibilities = len(colIndex)
+        checkOrder.put((possibilities, i, False, []))
+        i += 1
+
+    return checkOrder
+
+
 
 def solve(constraints):
-    print("We starting")
     """
     Implement me!!!!!!!
     This function takes in a set of constraints. The first dimension is the axis
@@ -172,8 +224,8 @@ def solve(constraints):
     dim0 = len(constraints[0])
     dim1 = len(constraints[1])
 
-    rowValues = findValuesHelper(constraints[0], dim1)
-    colValues = findValuesHelper(constraints[1], dim0)
+    rowVariables = findValuesHelper(constraints[0], dim1)
+    colVariables = findValuesHelper(constraints[1], dim0)
 
     solutionMatrix = np.empty((dim0, dim1))
     solutionMatrix.fill(-1)
@@ -183,37 +235,18 @@ def solve(constraints):
     #  (previous variable index, prev is row, list of value indexes tried))
     checkOrder = PriorityQueue()
 
-    i = 0
-    for rowIndex in rowValues:
-        possibilities = len(rowIndex)
-        if possibilities == 1:
-            solutionMatrix[i] = rowIndex[0]
-        i += 1
-
-    i = 0
-    for colIndex in colValues:
-        possibilities = len(colIndex)
-        if possibilities == 1:
-            solutionMatrix[:, i] = colIndex[0]
-        i += 1
+    # fill solution matrix with values of domain size 1
+    solutionMatrix = fillSolutionMatrixWithDefiniteValues(rowVariables, colVariables, solutionMatrix)
 
     # toss out impossible values
-    removeImpossibleValues(colValues, rowValues, solutionMatrix)
+    solutionMatrix = removeImpossibleValues(colVariables, rowVariables, solutionMatrix)
 
-    i = 0
-    for rowIndex in rowValues:
-        possibilities = len(rowIndex)
-        checkOrder.put((possibilities, i, True, []))
-        i += 1
+    checkOrder = addAllTuplesToQueue(rowVariables, colVariables, checkOrder)
 
-    i = 0
-    for colIndex in colValues:
-        possibilities = len(colIndex)
-        checkOrder.put((possibilities, i, False, []))
-        i += 1
 
-    for rowIndex in range(len(rowValues)):
-        solutionMatrix[rowIndex] = rowValues[rowIndex][0]
+#No longer need this with new implementation
+    for rowIndex in range(len(rowVariables)):
+        solutionMatrix[rowIndex] = rowVariables[rowIndex][0]
 
 
     checkedValueStack = []
@@ -225,7 +258,14 @@ def solve(constraints):
         attempted = currTuple[3]
         toAttempt = [x for x in range(currTuple[0]) if x not in attempted]
 
-        leastConstrainedValueIndex, inconsistencies = leastConstrainingValue(solutionMatrix, currTuple)
+        leastConstrainedValueIndex = 0;
+        if(isRow):
+            currVar = rowVariables[varIndex]
+            leastConstrainedValueIndex = leastConstrainingValue(solutionMatrix[varIndex], currVar)
+        else:
+            currVar = colVariables[varIndex]
+            leastConstrainedValueIndex = leastConstrainingValue(solutionMatrix[:, varIndex], currVar)
+
         if leastConstrainedValueIndex not in attempted:
             toAttempt.remove(leastConstrainedValueIndex)
             toAttempt.insert(0, leastConstrainedValueIndex) # try least constrained value first
@@ -233,29 +273,35 @@ def solve(constraints):
         if isRow:
             solutionFound = False
             for x in toAttempt:
-                array = rowValues[varIndex][x]
+                array = rowVariables[varIndex][x]
                 attempted.append(x)
-                arrayFits = True
-                for i in range(len(solutionMatrix[varIndex])):
-                    if solutionMatrix[varIndex][i] != array[i]:
-                        arrayFits = False
-                if arrayFits:
+                numInconsistencies = countInconsistencies(solutionMatrix[varIndex], array)
+                if(numInconsistencies == 0):
                     solutionMatrix[varIndex] = array
                     solutionFound = True
-                    currTuple[3] = attempted
-                    checkedValueStack.append(currTuple)
+                    newTuple = (currTuple[0], currTuple[1], currTuple[2], attempted)
+                    checkedValueStack.append(newTuple)
                     break
+
             if not solutionFound:
                 # backtrack
-                currTuple[3] = []
-                checkOrder.put(currTuple)
-                prevTuple = checkedValueStack.pop()
+                #I don't think we need to add current tuple as the previous one will add it
+                #However, we may need to reset its attempts
+                newTuple = (currTuple[0], currTuple[1], currTuple[2], [])
+                checkOrder.put(newTuple)
+                prevTuple = -1
+                if(len(checkedValueStack) == 0):
+                    print("that's fucked")
+                else:
+                    prevTuple = checkedValueStack.pop()
+
+                #TypeError: '<' not supported between ints and tuples
                 checkOrder.put(prevTuple)
 
         else:
             solutionFound = False
             for x in toAttempt:
-                array = colValues[varIndex][x]
+                array = colVariables[varIndex][x]
                 attempted.append(x)
                 arrayFits = True
                 for i in range(len(solutionMatrix[:, varIndex])):
@@ -264,37 +310,20 @@ def solve(constraints):
                 if arrayFits:
                     solutionMatrix[:, varIndex] = array
                     solutionFound = True
-                    currTuple[3] = attempted
-                    checkedValueStack.append(currTuple)
+                    newTuple = (currTuple[0], currTuple[1], currTuple[2], attempted)
+                    checkedValueStack.append(newTuple)
                     break
             if not solutionFound:
                 # backtrack
-                currTuple[3] = []
-                checkOrder.put(currTuple)
-                prevTuple = checkedValueStack.pop()
+                newTuple = (currTuple[0], currTuple[1], currTuple[2], [])
+                checkOrder.put(newTuple)
+                prevTuple = -1
+                if(len(checkedValueStack) == 0 ):
+                    print("that's fucked")
+                else:
+                    prevTuple = checkedValueStack.pop()
                 checkOrder.put(prevTuple)
 
     return 1
 
 
-def removeImpossibleValues(colValues, rowValues, solutionMatrix):
-    i = 0
-    for rowIndex in rowValues:
-        for possibilityIndex in range(len(rowIndex)):
-            testval = rowIndex[possibilityIndex]
-            assert len(testval) == len(solutionMatrix[i])
-            for k in range(len(solutionMatrix[i])):
-                if solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != testval[k]:
-                    rowIndex.pop(possibilityIndex)
-                    break
-        i += 1
-    i = 0
-    for colIndex in colValues:
-        for possibilityIndex in range(len(colIndex)):
-            testval = colIndex[possibilityIndex]
-            assert len(testval) == len(solutionMatrix[:, i])
-            for k in range(len(solutionMatrix[:, i])):
-                if solutionMatrix[:, i][k] != -1 and solutionMatrix[:, i][k] != testval[k]:
-                    colIndex.pop(possibilityIndex)
-                    break
-        i += 1
