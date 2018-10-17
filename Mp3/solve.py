@@ -1,6 +1,8 @@
 import numpy as np
 from queue import PriorityQueue
 from pythonds.basic.stack import Stack
+import copy
+
 
 """
     Implement me!!!!!!!
@@ -226,25 +228,26 @@ def prune(rowVariables, colVariables, isRow, solutionMatrix):
         i = 0
         for var in rowVariables:
             before = len(var)
-            var[:] = [x for x in var if (countInconsistencies(solutionMatrix[i], x)) == 0]
+            var = [x for x in var if (countInconsistencies(solutionMatrix[i], x)) == 0]
             after = len(var)
 
             if(before != after):
                 hasChanged = True
-
+                rowVariables[i] = var
             i += 1
     else:
         i = 0
         for col in colVariables:
             before = len(col)
-            col[:] = [x for x in col if (countInconsistencies(solutionMatrix[:,i], x)) == 0]
+            col = [x for x in col if (countInconsistencies(solutionMatrix[:,i], x)) == 0]
             after = len(col)
 
             if (before != after):
                 hasChanged = True
+                colVariables[i] = col
 
             i += 1
-    return hasChanged
+    return hasChanged, rowVariables, colVariables
 
 
 
@@ -304,7 +307,12 @@ def solve(constraints):
     while(1): #while a var still has > 1 value
         print("new iteration")
         #right now isRows is hard coded to 'True'
-        screenshots.push( (True, index, rowVariables.copy(), colVariables.copy(), solutionMatrix.copy()))
+        rowcopy = copy.deepcopy(rowVariables)
+        colcopy = copy.deepcopy(colVariables)
+        solCopy = copy.deepcopy(solutionMatrix)
+        temp = (True, index, rowcopy, colcopy, solCopy)
+        screenshots.push( temp )
+
         currVal = currVar[0]
         currVar = [currVal]
         rowVariables[index] = currVar
@@ -319,7 +327,7 @@ def solve(constraints):
 
         #Prune until no values change
         while(hasChanged):
-            hasChanged = prune(rowVariables, colVariables, isRow, solutionMatrix)
+            hasChanged, rowVariables, colVariables = prune(rowVariables, colVariables, isRow, solutionMatrix.copy())
             if(allVarsHaveVals(rowVariables, colVariables) == 0):
                 break
             fillSolutionMatrixWithDefiniteValues(rowVariables, colVariables, solutionMatrix)
