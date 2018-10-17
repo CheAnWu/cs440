@@ -76,6 +76,7 @@ import time
 
     """
 
+
 # passes in a row/col from the constraints list and returns all possible configurations
 def findPossibleValues(result, state, pointsNeeded, dimension):
     if (len(state) > dimension):
@@ -138,7 +139,8 @@ def findValuesHelper(constraintAxis, dimension):
 
     return values
 
-#don't need anymore
+
+# don't need anymore
 def leastConstrainingValue(solutionArray, variable):
     minInconsistencies = 999
     index = -1
@@ -157,11 +159,12 @@ def leastConstrainingValue(solutionArray, variable):
 def countInconsistencies(solutionArray, val):
     inconsistencies = 0
     for i in range(len(solutionArray)):
-        if(solutionArray[i] != val[i] and solutionArray[i] != -1):
+        if (solutionArray[i] != val[i] and solutionArray[i] != -1):
             inconsistencies += 1
     return inconsistencies
 
-#can be used whenever
+
+# can be used whenever
 def fillSolutionMatrixWithDefiniteValues(rowVariables, colVariables, solutionMatrix):
     i = 0
     for rowIndex in rowVariables:
@@ -179,6 +182,7 @@ def fillSolutionMatrixWithDefiniteValues(rowVariables, colVariables, solutionMat
 
     return solutionMatrix
 
+
 def getMostConstrainedVariable(variableList):
     minVals = 999
     solutionVar = -1
@@ -189,30 +193,31 @@ def getMostConstrainedVariable(variableList):
     i = 0
     for var in variableList:
         numVals = len(var)
-        if( numVals < minVals and numVals > 1):
+        if (numVals < minVals and numVals > 1):
             minVals = numVals
             solutionVar = var
             index = i
-        if( numVals > maxVals):
+        if (numVals > maxVals):
             maxVals = numVals
         i += 1
 
     return index, solutionVar
 
-#returns 0 if invalid, 1 if completed, and 2 for standard
+
+# returns 0 if invalid, 1 if completed, and 2 for standard
 def allVarsHaveVals(rowVariables, colVariables):
     allOnes = True
     for var in rowVariables:
-        if(len(var) == 0):
+        if (len(var) == 0):
             return 0
-        elif(len(var) > 1):
+        elif (len(var) > 1):
             allOnes = False
     for var in colVariables:
-        if(len(var) == 0):
+        if (len(var) == 0):
             return 0
-        elif(len(var) > 1):
+        elif (len(var) > 1):
             allOnes = False
-    if(allOnes):
+    if (allOnes):
         return 1
     return 2
 
@@ -220,14 +225,14 @@ def allVarsHaveVals(rowVariables, colVariables):
 def prune(rowVariables, colVariables, isRow, solutionMatrix):
     hasChanged = False
 
-    if(isRow):
+    if (isRow):
         i = 0
         for var in rowVariables:
             before = len(var)
             var = [x for x in var if (countInconsistencies(solutionMatrix[i], x)) == 0]
             after = len(var)
 
-            if(before != after):
+            if (before != after):
                 hasChanged = True
                 rowVariables[i] = var
             i += 1
@@ -235,7 +240,7 @@ def prune(rowVariables, colVariables, isRow, solutionMatrix):
         i = 0
         for col in colVariables:
             before = len(col)
-            col = [x for x in col if (countInconsistencies(solutionMatrix[:,i], x)) == 0]
+            col = [x for x in col if (countInconsistencies(solutionMatrix[:, i], x)) == 0]
             after = len(col)
 
             if (before != after):
@@ -245,35 +250,33 @@ def prune(rowVariables, colVariables, isRow, solutionMatrix):
             i += 1
     return hasChanged, rowVariables, colVariables
 
+def testAgainstSolutionMatrix(variableIndex, possibilityIndex, solutionMatrix, i):
+    testval = variableIndex[possibilityIndex]
+    for k in range(len(solutionMatrix[i])):
+        if solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != testval[k]:
+            return False
 
+    return True
 
 def removeImpossibleValues(rowVariables, colVariables, solutionMatrix):
     i = 0
     for rowIndex in rowVariables:
-        for possibilityIndex in range(len(rowIndex)):
-            testval = rowIndex[possibilityIndex]
-            assert len(testval) == len(solutionMatrix[i])
-            for k in range(len(solutionMatrix[i])):
-                if solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != testval[k]:
-                    rowIndex.pop(possibilityIndex)
-                    break
+        # for possibilityIndex in range(len(rowIndex)):
+        rowVariables[i] = [rowIndex[possibilityIndex] for possibilityIndex in range(len(rowIndex)) if testAgainstSolutionMatrix(rowIndex, possibilityIndex, solutionMatrix, i)]
+            # testval = rowIndex[possibilityIndex]
+            # for k in range(len(solutionMatrix[i])):
+            #     if solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != testval[k]:
+            #         rowIndex.pop(possibilityIndex)
+            #         break
         i += 1
+        # rowVariables[i] = [rowIndex[i] for i in len(rowIndex) if for k in range(len(solutionMatrix[i])) solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != rowIndex[i][k]]
 
     i = 0
     for colIndex in colVariables:
-        for possibilityIndex in range(len(colIndex)):
-            testval = colIndex[possibilityIndex]
-            assert len(testval) == len(solutionMatrix[:, i])
-            for k in range(len(solutionMatrix[:, i])):
-                if solutionMatrix[:, i][k] != -1 and solutionMatrix[:, i][k] != testval[k]:
-                    colIndex.pop(possibilityIndex)
-                    break
+        colVariables[i] = [colIndex[possibilityIndex] for possibilityIndex in range(len(colIndex)) if testAgainstSolutionMatrix(colIndex, possibilityIndex, solutionMatrix, i)]
         i += 1
 
     return solutionMatrix
-
-
-
 
 
 def solve(constraints):
@@ -292,50 +295,48 @@ def solve(constraints):
     # toss out impossible values
     solutionMatrix = removeImpossibleValues(rowVariables, colVariables, solutionMatrix)
 
-    #screenshot = (isRow, varIdx, RowVar, ColVar, solutionMatrix)
-    screenshots = Stack()
+    # screenshot = (isRow, varIdx, RowVar, ColVar, solutionMatrix)
+    snapshots = Stack()
 
     index, currVar = getMostConstrainedVariable(rowVariables)
 
-    while(1): #while a var still has > 1 value
-        #right now isRows is hard coded to 'True'
+    while (1):  # while a var still has > 1 value
         rowcopy = copy.deepcopy(rowVariables)
         colcopy = copy.deepcopy(colVariables)
         solCopy = copy.deepcopy(solutionMatrix)
-        temp = (True, index, rowcopy, colcopy, solCopy)
-        screenshots.push( temp )
+        remainingVals = (True, index, rowcopy, colcopy, solCopy)
+        snapshots.push(remainingVals)
 
         currVal = currVar[0]
         currVar = [currVal]
         rowVariables[index] = currVar
 
-        if(countInconsistencies(solutionMatrix[index], currVal) > 0):
+        if (countInconsistencies(solutionMatrix[index], currVal) > 0):
             print("Something went wrong")
 
-        #Put value into solution Matrix
+        # Put value into solution Matrix
         solutionMatrix[index] = currVal
         isRow = False
         hasChanged = True
 
-        #Prune until no values change
-        while(hasChanged):
+        # Prune until no values change
+        while (hasChanged):
             hasChanged, rowVariables, colVariables = prune(rowVariables, colVariables, isRow, solutionMatrix.copy())
-            if(allVarsHaveVals(rowVariables, colVariables) == 0):
+            if (allVarsHaveVals(rowVariables, colVariables) == 0):
                 break
             fillSolutionMatrixWithDefiniteValues(rowVariables, colVariables, solutionMatrix)
             isRow = not isRow
 
+        # if var has 0 vals, then backtrack
+        remainingVals = allVarsHaveVals(rowVariables, colVariables)
 
-        #if var has 0 vals, then backtrack
-        temp = allVarsHaveVals(rowVariables, colVariables)
-
-        #Backtrack
-        if(temp == 0):
-            while(True):
-                #one of the values have to be true. This shouldn't happen
-                if(screenshots.isEmpty()):
+        # Backtrack
+        if (remainingVals == 0):
+            while (True):
+                # one of the values have to be true. This shouldn't happen
+                if (snapshots.isEmpty()):
                     print("Oh shit, empty")
-                lastSave = screenshots.pop()
+                lastSave = snapshots.pop()
                 isRow = lastSave[0]
                 varIdx = lastSave[1]
                 rowVariables = lastSave[2]
@@ -343,24 +344,20 @@ def solve(constraints):
                 solutionMatrix = lastSave[4]
                 rowVariables[varIdx].pop(0)
 
-                if(len(rowVariables[varIdx]) > 0 ):
+                if (len(rowVariables[varIdx]) > 0):
                     index = varIdx
                     currVar = rowVariables[varIdx]
                     break
 
             continue
 
-
-        #finished! All variables have 1 value
-        if(temp == 1):
-            print("Hell yeah! We finished")
+        # finished! All variables have 1 value
+        if (remainingVals == 1):
+            # print("Hell yeah! We finished")
             break
 
-        #finally, move to the nextNode
+        # finally, move to the nextNode
         index, currVar = getMostConstrainedVariable(rowVariables)
-
 
     print(solutionMatrix)
     return solutionMatrix
-
-
