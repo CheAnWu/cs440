@@ -2,6 +2,7 @@
 import numpy as np 
 import argparse
 from solve import solve
+import time
 
 def runs(rowcol):
     """
@@ -59,7 +60,10 @@ def main():
                     help='.npy file containing constraints')
     args = parser.parse_args()
     nono = Nonogram(args.constraints_file)
+    start_time = time.time()
     solution = solve(nono.constraints)
+    end_time = time.time()
+    print(str(end_time - start_time) + 'sec')
     if nono.isValidSolution(solution):
         print('\x1b[6;30;42m' + 'Success!' + '\x1b[0m')
     else:

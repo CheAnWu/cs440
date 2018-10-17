@@ -2,7 +2,7 @@ import numpy as np
 from queue import PriorityQueue
 from pythonds.basic.stack import Stack
 import copy
-
+import time
 
 """
     Implement me!!!!!!!
@@ -196,10 +196,6 @@ def getMostConstrainedVariable(variableList):
         if( numVals > maxVals):
             maxVals = numVals
         i += 1
-    if(minVals == 999):
-        print("No possible vars")
-    if(maxVals == 1):
-        print("Only 1 options")
 
     return index, solutionVar
 
@@ -281,8 +277,6 @@ def removeImpossibleValues(rowVariables, colVariables, solutionMatrix):
 
 
 def solve(constraints):
-
-
     dim0 = len(constraints[0])
     dim1 = len(constraints[1])
 
@@ -302,10 +296,8 @@ def solve(constraints):
     screenshots = Stack()
 
     index, currVar = getMostConstrainedVariable(rowVariables)
-    print(solutionMatrix)
 
     while(1): #while a var still has > 1 value
-        print("new iteration")
         #right now isRows is hard coded to 'True'
         rowcopy = copy.deepcopy(rowVariables)
         colcopy = copy.deepcopy(colVariables)
@@ -344,23 +336,14 @@ def solve(constraints):
                 if(screenshots.isEmpty()):
                     print("Oh shit, empty")
                 lastSave = screenshots.pop()
-                print("popped screenshots")
                 isRow = lastSave[0]
                 varIdx = lastSave[1]
                 rowVariables = lastSave[2]
-                print(rowVariables)
                 colVariables = lastSave[3]
                 solutionMatrix = lastSave[4]
-                print(solutionMatrix)
-
-                print(rowVariables[varIdx])
-
                 rowVariables[varIdx].pop(0)
 
-                print(rowVariables[varIdx])
-
                 if(len(rowVariables[varIdx]) > 0 ):
-                    print("Got info, back up a step")
                     index = varIdx
                     currVar = rowVariables[varIdx]
                     break
@@ -373,14 +356,11 @@ def solve(constraints):
             print("Hell yeah! We finished")
             break
 
-        #take a screenshot at end?
-
         #finally, move to the nextNode
-        print("end of while loop, getting new value")
         index, currVar = getMostConstrainedVariable(rowVariables)
 
 
-
+    print(solutionMatrix)
     return solutionMatrix
 
 
