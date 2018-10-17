@@ -1,6 +1,78 @@
 import numpy as np
 from queue import PriorityQueue
+from pythonds.basic.stack import Stack
 
+"""
+    Implement me!!!!!!!
+    The solve function takes in a set of constraints. The first dimension is the axis
+    to which the constraints refer to. The second dimension is the list of constraints
+    for some axis index pair. The third demsion is a single constraint of the form 
+    [i,j] which means a run of i js. For example, [4,1] would correspond to a block
+    [1,1,1,1].
+
+    The return value of this function should be a numpy array that satisfies all
+    of the constraints.
+
+
+	A puzzle will have the constraints of the following format:
+
+
+	array([
+		[list([[4, 1]]), 
+		 list([[1, 1], [1, 1], [1, 1]]),
+         list([[3, 1], [1, 1]]), 
+		 list([[2, 1]]), 
+		 list([[1, 1], [1, 1]])],
+        [list([[2, 1]]), 
+		 list([[1, 1], [1, 1]]), 
+		 list([[3, 1], [1, 1]]),
+         list([[1, 1], [1, 1]]), 
+		 list([[5, 1]])]
+		], dtype=object)
+
+	And a corresponding solution may be:
+
+	array([[0, 1, 1, 1, 1],
+		   [1, 0, 1, 0, 1],
+		   [1, 1, 1, 0, 1],
+		   [0, 0, 0, 1, 1],
+		   [0, 0, 1, 0, 1]])
+
+
+
+	Consider a more complicated set of constraints for a colored nonogram.
+
+	array([
+	   [list([[1, 1], [1, 4], [1, 2], [1, 1], [1, 2], [1, 1]]),
+        list([[1, 3], [1, 4], [1, 3]]), 
+		list([[1, 2]]),
+        list([[1, 4], [1, 1]]), 
+		list([[2, 2], [2, 1], [1, 3]]),
+        list([[1, 2], [1, 3], [1, 2]]), 
+		list([[2, 1]])],
+       [list([[1, 3], [1, 4], [1, 2]]),
+        list([[1, 1], [1, 4], [1, 2], [1, 2], [1, 1]]),
+        list([[1, 4], [1, 1], [1, 2], [1, 1]]), 
+		list([[1, 2], [1, 1]]),
+        list([[1, 1], [2, 3]]), 
+		list([[1, 2], [1, 3]]),
+        list([[1, 1], [1, 1], [1, 2]])]], 
+		dtype=object)
+
+	And a corresponding solution may be:
+
+	array([
+		   [0, 1, 4, 2, 1, 2, 1],
+		   [3, 4, 0, 0, 0, 3, 0],
+		   [0, 2, 0, 0, 0, 0, 0],
+		   [4, 0, 0, 0, 0, 0, 1],
+		   [2, 2, 1, 1, 3, 0, 0],
+		   [0, 0, 2, 0, 3, 0, 2],
+		   [0, 1, 1, 0, 0, 0, 0]
+		 ])
+
+
+    """
 
 # passes in a row/col from the constraints list and returns all possible configurations
 def findPossibleValues(result, state, pointsNeeded, dimension):
@@ -64,7 +136,7 @@ def findValuesHelper(constraintAxis, dimension):
 
     return values
 
-
+#don't need anymore
 def leastConstrainingValue(solutionArray, variable):
     minInconsistencies = 999
     index = -1
@@ -81,13 +153,13 @@ def leastConstrainingValue(solutionArray, variable):
 
 
 def countInconsistencies(solutionArray, val):
-    inconsistencies = 0;
+    inconsistencies = 0
     for i in range(len(solutionArray)):
-        if(solutionArray[i] != val[i]):
+        if(solutionArray[i] != val[i] and solutionArray[i] != -1):
             inconsistencies += 1
     return inconsistencies
 
-
+#can be used whenever
 def fillSolutionMatrixWithDefiniteValues(rowVariables, colVariables, solutionMatrix):
     i = 0
     for rowIndex in rowVariables:
@@ -105,9 +177,78 @@ def fillSolutionMatrixWithDefiniteValues(rowVariables, colVariables, solutionMat
 
     return solutionMatrix
 
+def getMostConstrainedVariable(variableList):
+    minVals = 999
+    solutionVar = -1
+    index = -1
+
+    maxVals = 0
+
+    i = 0
+    for var in variableList:
+        numVals = len(var)
+        if( numVals < minVals and numVals > 1):
+            minVals = numVals
+            solutionVar = var
+            index = i
+        if( numVals > maxVals):
+            maxVals = numVals
+        i += 1
+    if(minVals == 999):
+        print("No possible vars")
+    if(maxVals == 1):
+        print("Only 1 options")
+
+    return index, solutionVar
+
+#returns 0 if invalid, 1 if completed, and 2 for standard
+def allVarsHaveVals(rowVariables, colVariables):
+    allOnes = True
+    for var in rowVariables:
+        if(len(var) == 0):
+            return 0
+        elif(len(var) > 1):
+            allOnes = False
+    for var in colVariables:
+        if(len(var) == 0):
+            return 0
+        elif(len(var) > 1):
+            allOnes = False
+    if(allOnes):
+        return 1
+    return 2
 
 
-def removeImpossibleValues(colVariables, rowVariables, solutionMatrix):
+def prune(rowVariables, colVariables, isRow, solutionMatrix):
+    hasChanged = False
+
+    if(isRow):
+        i = 0
+        for var in rowVariables:
+            before = len(var)
+            var[:] = [x for x in var if (countInconsistencies(solutionMatrix[i], x)) == 0]
+            after = len(var)
+
+            if(before != after):
+                hasChanged = True
+
+            i += 1
+    else:
+        i = 0
+        for col in colVariables:
+            before = len(col)
+            col[:] = [x for x in col if (countInconsistencies(solutionMatrix[:,i], x)) == 0]
+            after = len(col)
+
+            if (before != after):
+                hasChanged = True
+
+            i += 1
+    return hasChanged
+
+
+
+def removeImpossibleValues(rowVariables, colVariables, solutionMatrix):
     i = 0
     for rowIndex in rowVariables:
         for possibilityIndex in range(len(rowIndex)):
@@ -118,6 +259,7 @@ def removeImpossibleValues(colVariables, rowVariables, solutionMatrix):
                     rowIndex.pop(possibilityIndex)
                     break
         i += 1
+
     i = 0
     for colIndex in colVariables:
         for possibilityIndex in range(len(colIndex)):
@@ -131,95 +273,12 @@ def removeImpossibleValues(colVariables, rowVariables, solutionMatrix):
 
     return solutionMatrix
 
-def addAllTuplesToQueue(rowVariables, colVariables, checkOrder):
-    i = 0
-    for rowIndex in rowVariables:
-        possibilities = len(rowIndex)
-        checkOrder.put((possibilities, i, True, []))
-        i += 1
 
-    i = 0
-    for colIndex in colVariables:
-        possibilities = len(colIndex)
-        checkOrder.put((possibilities, i, False, []))
-        i += 1
-
-    return checkOrder
 
 
 
 def solve(constraints):
-    """
-    Implement me!!!!!!!
-    This function takes in a set of constraints. The first dimension is the axis
-    to which the constraints refer to. The second dimension is the list of constraints
-    for some axis index pair. The third demsion is a single constraint of the form 
-    [i,j] which means a run of i js. For example, [4,1] would correspond to a block
-    [1,1,1,1].
-    
-    The return value of this function should be a numpy array that satisfies all
-    of the constraints.
 
-
-	A puzzle will have the constraints of the following format:
-	
-    
-	array([
-		[list([[4, 1]]), 
-		 list([[1, 1], [1, 1], [1, 1]]),
-         list([[3, 1], [1, 1]]), 
-		 list([[2, 1]]), 
-		 list([[1, 1], [1, 1]])],
-        [list([[2, 1]]), 
-		 list([[1, 1], [1, 1]]), 
-		 list([[3, 1], [1, 1]]),
-         list([[1, 1], [1, 1]]), 
-		 list([[5, 1]])]
-		], dtype=object)
-	
-	And a corresponding solution may be:
-
-	array([[0, 1, 1, 1, 1],
-		   [1, 0, 1, 0, 1],
-		   [1, 1, 1, 0, 1],
-		   [0, 0, 0, 1, 1],
-		   [0, 0, 1, 0, 1]])
-
-
-
-	Consider a more complicated set of constraints for a colored nonogram.
-
-	array([
-	   [list([[1, 1], [1, 4], [1, 2], [1, 1], [1, 2], [1, 1]]),
-        list([[1, 3], [1, 4], [1, 3]]), 
-		list([[1, 2]]),
-        list([[1, 4], [1, 1]]), 
-		list([[2, 2], [2, 1], [1, 3]]),
-        list([[1, 2], [1, 3], [1, 2]]), 
-		list([[2, 1]])],
-       [list([[1, 3], [1, 4], [1, 2]]),
-        list([[1, 1], [1, 4], [1, 2], [1, 2], [1, 1]]),
-        list([[1, 4], [1, 1], [1, 2], [1, 1]]), 
-		list([[1, 2], [1, 1]]),
-        list([[1, 1], [2, 3]]), 
-		list([[1, 2], [1, 3]]),
-        list([[1, 1], [1, 1], [1, 2]])]], 
-		dtype=object)
-
-	And a corresponding solution may be:
-
-	array([
-		   [0, 1, 4, 2, 1, 2, 1],
-		   [3, 4, 0, 0, 0, 3, 0],
-		   [0, 2, 0, 0, 0, 0, 0],
-		   [4, 0, 0, 0, 0, 0, 1],
-		   [2, 2, 1, 1, 3, 0, 0],
-		   [0, 0, 2, 0, 3, 0, 2],
-		   [0, 1, 1, 0, 0, 0, 0]
-		 ])
-
-
-    """
 
     dim0 = len(constraints[0])
     dim1 = len(constraints[1])
@@ -230,100 +289,90 @@ def solve(constraints):
     solutionMatrix = np.empty((dim0, dim1))
     solutionMatrix.fill(-1)
 
-    # Prioritized queue for order of adding to solution matrix based on possibilities
-    # Each tuple has the (number of possibilities, variable index, boolean is row,
-    #  (previous variable index, prev is row, list of value indexes tried))
-    checkOrder = PriorityQueue()
-
     # fill solution matrix with values of domain size 1
     solutionMatrix = fillSolutionMatrixWithDefiniteValues(rowVariables, colVariables, solutionMatrix)
 
     # toss out impossible values
-    solutionMatrix = removeImpossibleValues(colVariables, rowVariables, solutionMatrix)
+    solutionMatrix = removeImpossibleValues(rowVariables, colVariables, solutionMatrix)
 
-    checkOrder = addAllTuplesToQueue(rowVariables, colVariables, checkOrder)
+    #screenshot = (isRow, varIdx, RowVar, ColVar, solutionMatrix)
+    screenshots = Stack()
+
+    index, currVar = getMostConstrainedVariable(rowVariables)
+    print(solutionMatrix)
+
+    while(1): #while a var still has > 1 value
+        print("new iteration")
+        #right now isRows is hard coded to 'True'
+        screenshots.push( (True, index, rowVariables.copy(), colVariables.copy(), solutionMatrix.copy()))
+        currVal = currVar[0]
+        currVar = [currVal]
+        rowVariables[index] = currVar
+
+        if(countInconsistencies(solutionMatrix[index], currVal) > 0):
+            print("Something went wrong")
+
+        #Put value into solution Matrix
+        solutionMatrix[index] = currVal
+        isRow = False
+        hasChanged = True
+
+        #Prune until no values change
+        while(hasChanged):
+            hasChanged = prune(rowVariables, colVariables, isRow, solutionMatrix)
+            if(allVarsHaveVals(rowVariables, colVariables) == 0):
+                break
+            fillSolutionMatrixWithDefiniteValues(rowVariables, colVariables, solutionMatrix)
+            isRow = not isRow
 
 
-#No longer need this with new implementation
-    for rowIndex in range(len(rowVariables)):
-        solutionMatrix[rowIndex] = rowVariables[rowIndex][0]
+        #if var has 0 vals, then backtrack
+        temp = allVarsHaveVals(rowVariables, colVariables)
 
+        #Backtrack
+        if(temp == 0):
+            while(True):
+                #one of the values have to be true. This shouldn't happen
+                if(screenshots.isEmpty()):
+                    print("Oh shit, empty")
+                lastSave = screenshots.pop()
+                print("popped screenshots")
+                isRow = lastSave[0]
+                varIdx = lastSave[1]
+                rowVariables = lastSave[2]
+                print(rowVariables)
+                colVariables = lastSave[3]
+                solutionMatrix = lastSave[4]
+                print(solutionMatrix)
 
-    checkedValueStack = []
+                print(rowVariables[varIdx])
 
-    while not checkOrder.empty():
-        currTuple = checkOrder.get()
-        varIndex = currTuple[1]
-        isRow = currTuple[2]
-        attempted = currTuple[3]
-        toAttempt = [x for x in range(currTuple[0]) if x not in attempted]
+                rowVariables[varIdx].pop(0)
 
-        leastConstrainedValueIndex = 0;
-        if(isRow):
-            currVar = rowVariables[varIndex]
-            leastConstrainedValueIndex = leastConstrainingValue(solutionMatrix[varIndex], currVar)
-        else:
-            currVar = colVariables[varIndex]
-            leastConstrainedValueIndex = leastConstrainingValue(solutionMatrix[:, varIndex], currVar)
+                print(rowVariables[varIdx])
 
-        if leastConstrainedValueIndex not in attempted:
-            toAttempt.remove(leastConstrainedValueIndex)
-            toAttempt.insert(0, leastConstrainedValueIndex) # try least constrained value first
-
-        if isRow:
-            solutionFound = False
-            for x in toAttempt:
-                array = rowVariables[varIndex][x]
-                attempted.append(x)
-                numInconsistencies = countInconsistencies(solutionMatrix[varIndex], array)
-                if(numInconsistencies == 0):
-                    solutionMatrix[varIndex] = array
-                    solutionFound = True
-                    newTuple = (currTuple[0], currTuple[1], currTuple[2], attempted)
-                    checkedValueStack.append(newTuple)
+                if(len(rowVariables[varIdx]) > 0 ):
+                    print("Got info, back up a step")
+                    index = varIdx
+                    currVar = rowVariables[varIdx]
                     break
 
-            if not solutionFound:
-                # backtrack
-                #I don't think we need to add current tuple as the previous one will add it
-                #However, we may need to reset its attempts
-                newTuple = (currTuple[0], currTuple[1], currTuple[2], [])
-                checkOrder.put(newTuple)
-                prevTuple = -1
-                if(len(checkedValueStack) == 0):
-                    print("that's fucked")
-                else:
-                    prevTuple = checkedValueStack.pop()
+            continue
 
-                #TypeError: '<' not supported between ints and tuples
-                checkOrder.put(prevTuple)
 
-        else:
-            solutionFound = False
-            for x in toAttempt:
-                array = colVariables[varIndex][x]
-                attempted.append(x)
-                arrayFits = True
-                for i in range(len(solutionMatrix[:, varIndex])):
-                    if solutionMatrix[:, varIndex][i] != array[i]:
-                        arrayFits = False
-                if arrayFits:
-                    solutionMatrix[:, varIndex] = array
-                    solutionFound = True
-                    newTuple = (currTuple[0], currTuple[1], currTuple[2], attempted)
-                    checkedValueStack.append(newTuple)
-                    break
-            if not solutionFound:
-                # backtrack
-                newTuple = (currTuple[0], currTuple[1], currTuple[2], [])
-                checkOrder.put(newTuple)
-                prevTuple = -1
-                if(len(checkedValueStack) == 0 ):
-                    print("that's fucked")
-                else:
-                    prevTuple = checkedValueStack.pop()
-                checkOrder.put(prevTuple)
+        #finished! All variables have 1 value
+        if(temp == 1):
+            print("Hell yeah! We finished")
+            break
 
-    return 1
+        #take a screenshot at end?
+
+        #finally, move to the nextNode
+        print("end of while loop, getting new value")
+        index, currVar = getMostConstrainedVariable(rowVariables)
+
+
+
+    return solutionMatrix
 
 
