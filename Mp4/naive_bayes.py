@@ -55,10 +55,10 @@ def parseIntoBigramList(train_set, train_labels, isSpam):
         if (train_labels[i] != isSpam):
             continue
         curr_email = train_set[i]
-        for j in range(len(curr_email)):
+        for j in range(len(curr_email) - 1):
             if(j % 2 == 1):
                 continue
-            bigram = curr_email[j] + " " + curr_email[j + 1]
+            bigram = curr_email[j] + ' ' + curr_email[j + 1]
             if bigram in bigram_list:
                 bigram_count[bigram_list.index(bigram)] += 1
             else:
@@ -90,12 +90,6 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
     spam_words, spam_wordcount = parseIntoWordList(train_set, train_labels, 1)
     ham_words, ham_wordcount = parseIntoWordList(train_set, train_labels, 0)
 
-
-
-
-
-
-
     spamWords, spamProbs, spamUNK = createProbabilitiesList(spam_words, spam_wordcount, smoothing_parameter)
     hamWords, hamProbs, hamUNK = createProbabilitiesList(ham_words, ham_wordcount, smoothing_parameter)
 
@@ -104,7 +98,10 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
     loggedHam = np.log(hamProbs)
     loggedHamUNK = np.log(hamUNK)
 
-    dev_labels = []
+
+#Unigram
+    dev_spam = []
+    dev_ham = []
 
     for i in range(len(dev_set)):
         probSpam = 0
@@ -122,10 +119,62 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
                 probHam += loggedHam[index]
             else:
                 probHam += loggedHamUNK
+        dev_spam.append(probSpam)
+        dev_ham.append(probHam)
 
-        if(probSpam > probHam):
+
+    #BiGram
+    bi_spam_words, bi_spam_count = parseIntoBigramList(train_set, train_labels, 1)
+    bi_ham_words, bi_ham_count = parseIntoBigramList(train_set, train_labels, 0)
+
+    biSpamWords, biSpamProbs, biSpamUNK = createProbabilitiesList(bi_spam_words, bi_spam_count, smoothing_parameter)
+    biHamWords, biHamProbs, biHamUNK = createProbabilitiesList(bi_ham_words, bi_ham_count, smoothing_parameter)
+
+    biLoggedSpam = np.log(biSpamProbs)
+    biLoggedSpamUNK = np.log(biSpamUNK)
+    biLoggedHam = np.log(biHamProbs)
+    biLoggedHamUNK = np.log(biHamUNK)
+
+#Bigram
+    bi_dev_spam = []
+    bi_dev_ham = []
+
+    for i in range(len(dev_set)):
+        biProbSpam = 0
+        biProbHam = 0
+        curr_email = dev_set[i]
+
+        for j in range(len(curr_email) - 1):
+            if(j % 2 == 1):
+                continue
+            curr_bigram = curr_email[j] + ' ' + curr_email[j+1]
+
+            if curr_bigram in biSpamWords:
+                index = biSpamWords.index(curr_bigram)
+                biProbSpam += biLoggedSpam[index]
+            else:
+                biProbSpam += biLoggedSpamUNK
+
+            if curr_bigram in biHamWords:
+                index = biHamWords.index(curr_bigram)
+                biProbHam += biLoggedHam[index]
+            else:
+                probHam += biLoggedHamUNK
+        bi_dev_spam.append(probSpam)
+        bi_dev_ham.append(probHam)
+
+
+#Weights the models (1-lambda) multiplier for unigram and lamba multiplier for bigram
+    LAMBDA_VALUE = 1
+    dev_labels = []
+
+    for i in range(len(dev_set)):
+        spam_value = (1-LAMBDA_VALUE)*dev_spam[i] + LAMBDA_VALUE*bi_dev_spam[i]
+        ham_value = (1-LAMBDA_VALUE)*dev_ham[i] + LAMBDA_VALUE*bi_dev_ham[i]
+        if(spam_value > ham_value):
             dev_labels.append(1)
         else:
             dev_labels.append(0)
+
 
     return dev_labels
