@@ -34,19 +34,42 @@ def parseIntoWordList(train_set, train_labels, isSpam):
 
 
 # creates list of words with corresponding number = ('cat'in spam emails / all words in spam emails)
-def createProbabilitiesList(train_set, train_labels, isSpam):
-    words, wordcount = parseIntoWordList(train_set, train_labels, isSpam)
+def createProbabilitiesList(words, wordcount, smoothing_param):
 
     problist = []
-    denominator = sum(wordcount)
+    total_words = sum(wordcount)
+    total_types = len(words)
 
-    for i in range(len(words)):
-        problist[i] = wordcount[i] / denominator
+    unknown_prob = smoothing_param/(total_words + smoothing_param*(total_types + 1))
 
-    return words, problist
+    for i in range(total_types):
+        problist.append((wordcount[i] + smoothing_param) / (total_words + smoothing_param*(total_types + 1) ))
+
+    return words, problist, unknown_prob
+
+def parseIntoBigramList(train_set, train_labels, isSpam):
+    bigram_list = []
+    bigram_count = []
+
+    for i in range(len(train_labels)):
+        if (train_labels[i] != isSpam):
+            continue
+        curr_email = train_set[i]
+        for j in range(len(curr_email)):
+            if(j % 2 == 1):
+                continue
+            bigram = curr_email[j] + " " + curr_email[j + 1]
+            if bigram in bigram_list:
+                bigram_count[bigram_list.index(bigram)] += 1
+            else:
+                bigram_list.append(bigram)
+                bigram_count.append(1)
+
+    return bigram_list, bigram_count
 
 
 def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
+    print("starting")
     """
     train_set - List of list of words corresponding with each email
     example: suppose I had two emails 'i like pie' and 'i like cake' in my training set
@@ -64,11 +87,45 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
 
     # TODO: Write your code here
     # return predicted labels of development set
+    spam_words, spam_wordcount = parseIntoWordList(train_set, train_labels, 1)
+    ham_words, ham_wordcount = parseIntoWordList(train_set, train_labels, 0)
 
-    spamWords, spamProbs = createProbabilitiesList(train_set, train_labels, 1)
-    hamWords, hamProbs = createProbabilitiesList(train_set, train_labels, 0)
+
+
+
+
+
+
+    spamWords, spamProbs, spamUNK = createProbabilitiesList(spam_words, spam_wordcount, smoothing_parameter)
+    hamWords, hamProbs, hamUNK = createProbabilitiesList(ham_words, ham_wordcount, smoothing_parameter)
 
     loggedSpam = np.log(spamProbs)
+    loggedSpamUNK = np.log(spamUNK)
     loggedHam = np.log(hamProbs)
+    loggedHamUNK = np.log(hamUNK)
 
-    return []
+    dev_labels = []
+
+    for i in range(len(dev_set)):
+        probSpam = 0
+        probHam = 0
+
+        for word in dev_set[i]:
+            if word in spamWords:
+                index = spamWords.index(word)
+                probSpam += loggedSpam[index]
+            else:
+                probSpam += loggedSpamUNK
+
+            if word in hamWords:
+                index = hamWords.index(word)
+                probHam += loggedHam[index]
+            else:
+                probHam += loggedHamUNK
+
+        if(probSpam > probHam):
+            dev_labels.append(1)
+        else:
+            dev_labels.append(0)
+
+    return dev_labels
