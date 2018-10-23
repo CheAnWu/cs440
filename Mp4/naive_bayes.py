@@ -199,9 +199,10 @@ def getBigram(bi_dev_ham, bi_dev_spam, dev_ham, dev_set, dev_spam, org_dev_label
     LAMBDA_ARR = np.linspace(.1, 1, 10)
     # LAMBDA_ARR = [1]
 
+    dev_labels = []
     for x in LAMBDA_ARR:
         LAMBDA_VALUE = float(x)
-        dev_labels = []
+        dev_labels.clear()
         for i in range(len(dev_set)):
             spam_value = (1 - LAMBDA_VALUE) * dev_spam[i] + LAMBDA_VALUE * bi_dev_spam[i]
             ham_value = (1 - LAMBDA_VALUE) * dev_ham[i] + LAMBDA_VALUE * bi_dev_ham[i]
