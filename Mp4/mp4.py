@@ -19,19 +19,19 @@ import naive_bayes as nb
 This file contains the main application that is run for this MP.
 """
 
-def compute_accuracies(predicted_labels,dev_set,dev_labels):
+def compute_accuracies(predicted_labels, dev_set, org_dev_labels):
     yhats = predicted_labels
-    accuracy = np.mean(yhats == dev_labels)
-    tp = np.sum([yhats[i] == dev_labels[i] and yhats[i] == 1 for i in range(len(yhats))])
+    accuracy = np.mean(yhats == org_dev_labels)
+    tp = np.sum([yhats[i] == org_dev_labels[i] and yhats[i] == 1 for i in range(len(yhats))])
     precision = tp / np.sum([yhats[i]==1 for i in range(len(yhats))])
-    recall = tp / (np.sum([yhats[i] != dev_labels[i] and yhats[i] == 0 for i in range(len(yhats))]) + tp)
+    recall = tp / (np.sum([yhats[i] != org_dev_labels[i] and yhats[i] == 0 for i in range(len(yhats))]) + tp)
     f1 = 2 * (precision * recall) / (precision + recall)
 
     return accuracy,f1,precision,recall
 
 def main(args):
     train_set, train_labels, dev_set,dev_labels = reader.load_dataset(args.training_dir,args.development_dir,args.stemming)
-    predicted_labels = nb.naiveBayes(train_set,train_labels, dev_set, args.laplace)
+    predicted_labels = nb.naiveBayes(train_set,train_labels, dev_set, args.laplace, dev_labels)
     accuracy,f1,precision,recall = compute_accuracies(predicted_labels,dev_set,dev_labels)
     print("Accuracy:",accuracy)
     print("F1-Score:",f1)

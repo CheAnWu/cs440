@@ -15,6 +15,7 @@ files and classes when code is run, so be careful to not modify anything else.
 import numpy as np
 import nltk
 
+
 def parseIntoWordList(train_set, train_labels, isSpam):
     wordList = []
     wordCount = []
@@ -60,19 +61,20 @@ def validWord(word):
         return True
     return False
 
+
 # creates list of words with corresponding number = ('cat'in spam emails / all words in spam emails)
 def createProbabilitiesList(words, wordcount, smoothing_param):
-
     problist = []
     total_words = sum(wordcount)
     total_types = len(words)
 
-    unknown_prob = smoothing_param/(total_words + smoothing_param*(total_types + 1))
+    unknown_prob = smoothing_param / (total_words + smoothing_param * (total_types + 1))
 
     for i in range(total_types):
-        problist.append((wordcount[i] + smoothing_param) / (total_words + smoothing_param*(total_types + 1) ))
+        problist.append((wordcount[i] + smoothing_param) / (total_words + smoothing_param * (total_types + 1)))
 
     return words, problist, unknown_prob
+
 
 def parseIntoBigramList(train_set, train_labels, isSpam):
     bigram_list = []
@@ -83,7 +85,7 @@ def parseIntoBigramList(train_set, train_labels, isSpam):
             continue
         curr_email = train_set[i]
         for j in range(len(curr_email) - 1):
-            if(j % 2 == 1):
+            if (j % 2 == 1):
                 continue
             bigram = curr_email[j] + ' ' + curr_email[j + 1]
             if bigram in bigram_list:
@@ -95,7 +97,7 @@ def parseIntoBigramList(train_set, train_labels, isSpam):
     return bigram_list, bigram_count
 
 
-def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
+def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter, org_dev_labels):
     print("starting")
     """
     train_set - List of list of words corresponding with each email
@@ -124,8 +126,7 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
     loggedHam = np.log(hamProbs)
     loggedHamUNK = np.log(hamUNK)
 
-
-#Unigram
+    # Unigram
     dev_spam = []
     dev_ham = []
 
@@ -148,8 +149,7 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
         dev_spam.append(probSpam)
         dev_ham.append(probHam)
 
-
-    #BiGram
+    # BiGram
     bi_spam_words, bi_spam_count = parseIntoBigramList(train_set, train_labels, 1)
     bi_ham_words, bi_ham_count = parseIntoBigramList(train_set, train_labels, 0)
 
@@ -161,7 +161,7 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
     biLoggedHam = np.log(biHamProbs)
     biLoggedHamUNK = np.log(biHamUNK)
 
-#Bigram
+    # Bigram
     bi_dev_spam = []
     bi_dev_ham = []
 
@@ -171,9 +171,9 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
         curr_email = dev_set[i]
 
         for j in range(len(curr_email) - 1):
-            if(j % 2 == 1):
+            if (j % 2 == 1):
                 continue
-            curr_bigram = curr_email[j] + ' ' + curr_email[j+1]
+            curr_bigram = curr_email[j] + ' ' + curr_email[j + 1]
 
             if curr_bigram in biSpamWords:
                 index = biSpamWords.index(curr_bigram)
@@ -189,17 +189,27 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
         bi_dev_spam.append(probSpam)
         bi_dev_ham.append(probHam)
 
+    # Weights the models (1-lambda) multiplier for unigram and lamba multiplier for bigram
+    dev_labels = getBigram(bi_dev_ham, bi_dev_spam, dev_ham, dev_set, dev_spam, org_dev_labels)
 
-#Weights the models (1-lambda) multiplier for unigram and lamba multiplier for bigram
-    LAMBDA_VALUE = 1
-    dev_labels = []
+    return dev_labels
 
-    for i in range(len(dev_set)):
-        spam_value = (1-LAMBDA_VALUE)*dev_spam[i] + LAMBDA_VALUE*bi_dev_spam[i]
-        ham_value = (1-LAMBDA_VALUE)*dev_ham[i] + LAMBDA_VALUE*bi_dev_ham[i]
-        if(spam_value > ham_value):
-            dev_labels.append(1)
-        else:
-            dev_labels.append(0)
 
+def getBigram(bi_dev_ham, bi_dev_spam, dev_ham, dev_set, dev_spam, org_dev_labels):
+    LAMBDA_ARR = np.linspace(.1, 1, 10)
+    # LAMBDA_ARR = [1]
+
+    for x in LAMBDA_ARR:
+        LAMBDA_VALUE = float(x)
+        dev_labels = []
+        for i in range(len(dev_set)):
+            spam_value = (1 - LAMBDA_VALUE) * dev_spam[i] + LAMBDA_VALUE * bi_dev_spam[i]
+            ham_value = (1 - LAMBDA_VALUE) * dev_ham[i] + LAMBDA_VALUE * bi_dev_ham[i]
+            if (spam_value > ham_value):
+                dev_labels.append(1)
+            else:
+                dev_labels.append(0)
+
+        accuracy = np.mean(dev_labels == org_dev_labels)
+        print("Bigram lambda: ", LAMBDA_VALUE, " Accuracy: ", accuracy)
     return dev_labels

@@ -21,12 +21,13 @@ def main(args):
 
     accuracies = []
     for currLaplaceVal in laplaceVals:
+        print("Laplaceval:", float(currLaplaceVal))
         train_set, train_labels, dev_set, dev_labels = reader.load_dataset(args.training_dir, args.development_dir,
                                                                            args.stemming)
-        predicted_labels = nb.naiveBayes(train_set, train_labels, dev_set, float(currLaplaceVal))
-        accuracy = compute_accuracies(predicted_labels, dev_set, dev_labels)
-        print("Accuracy:", float(currLaplaceVal), accuracy)
-        accuracies.append(accuracy)
+        predicted_labels = nb.naiveBayes(train_set, train_labels, dev_set, float(currLaplaceVal), dev_labels)
+        # accuracy = compute_accuracies(predicted_labels, dev_set, dev_labels)
+        # print("Laplaceval:", float(currLaplaceVal), "Accuracy:", accuracy)
+        # accuracies.append(accuracy)
 
     plt.plot(laplaceVals, accuracies)
     plt.ylabel('Accuracy')
