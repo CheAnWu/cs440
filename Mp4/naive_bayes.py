@@ -13,7 +13,7 @@ within this file -- the unrevised staff files will be used for all other
 files and classes when code is run, so be careful to not modify anything else.
 """
 import numpy as np
-
+import nltk
 
 def parseIntoWordList(train_set, train_labels, isSpam):
     wordList = []
