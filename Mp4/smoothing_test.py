@@ -29,10 +29,10 @@ def main(args):
         # print("Laplaceval:", float(currLaplaceVal), "Accuracy:", accuracy)
         # accuracies.append(accuracy)
 
-    plt.plot(laplaceVals, accuracies)
-    plt.ylabel('Accuracy')
-    plt.xlabel('LaPlace Smoothing Parameter')
-    plt.show()
+    # plt.plot(laplaceVals, accuracies)
+    # plt.ylabel('Accuracy')
+    # plt.xlabel('LaPlace Smoothing Parameter')
+    # plt.show()
 
 
 if __name__ == "__main__":
