@@ -21,18 +21,18 @@ def main(args):
 
     accuracies = []
     for currLaplaceVal in laplaceVals:
-        print("Laplaceval:", float(currLaplaceVal))
+        # print("Laplaceval:", float(currLaplaceVal))
         train_set, train_labels, dev_set, dev_labels = reader.load_dataset(args.training_dir, args.development_dir,
                                                                            args.stemming)
         predicted_labels = nb.naiveBayes(train_set, train_labels, dev_set, float(currLaplaceVal), dev_labels)
-        # accuracy = compute_accuracies(predicted_labels, dev_set, dev_labels)
-        # print("Laplaceval:", float(currLaplaceVal), "Accuracy:", accuracy)
-        # accuracies.append(accuracy)
+        accuracy = compute_accuracies(predicted_labels, dev_set, dev_labels)
+        print("Laplaceval:", float(currLaplaceVal), "Accuracy:", accuracy)
+        accuracies.append(accuracy)
 
-    # plt.plot(laplaceVals, accuracies)
-    # plt.ylabel('Accuracy')
-    # plt.xlabel('LaPlace Smoothing Parameter')
-    # plt.show()
+    plt.plot(laplaceVals, accuracies)
+    plt.ylabel('Accuracy')
+    plt.xlabel('LaPlace Smoothing Parameter')
+    plt.show()
 
 
 if __name__ == "__main__":
