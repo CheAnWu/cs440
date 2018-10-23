@@ -26,12 +26,39 @@ def parseIntoWordList(train_set, train_labels, isSpam):
         for word in curr_email:
             if word in wordList:
                 wordCount[wordList.index(word)] += 1
-            else:
+            elif validWord(word):
                 wordList.append(word)
                 wordCount.append(1)
 
     return wordList, wordCount
 
+
+def validWord(word):
+    nonWordSet = set()
+    nonWordSet.add("Subject:")
+    nonWordSet.add(",")
+    nonWordSet.add(".:")
+    nonWordSet.add("[:")
+    nonWordSet.add("]:")
+    nonWordSet.add("'")
+    nonWordSet.add("\"")
+    nonWordSet.add("!")
+    nonWordSet.add("@")
+    nonWordSet.add("/")
+    nonWordSet.add("\\")
+    nonWordSet.add("-")
+    nonWordSet.add(">")
+    nonWordSet.add("<")
+    nonWordSet.add("+")
+    nonWordSet.add("=")
+    nonWordSet.add("%")
+    nonWordSet.add("#")
+    nonWordSet.add("(")
+    nonWordSet.add(")")
+    nonWordSet.add("*")
+    if word not in nonWordSet:
+        return True
+    return False
 
 # creates list of words with corresponding number = ('cat'in spam emails / all words in spam emails)
 def createProbabilitiesList(words, wordcount, smoothing_param):
@@ -85,7 +112,6 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
     smoothing_parameter - The smoothing parameter you provided with --laplace (1.0 by default)
     """
 
-    # TODO: Write your code here
     # return predicted labels of development set
     spam_words, spam_wordcount = parseIntoWordList(train_set, train_labels, 1)
     ham_words, ham_wordcount = parseIntoWordList(train_set, train_labels, 0)
@@ -175,6 +201,5 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter):
             dev_labels.append(1)
         else:
             dev_labels.append(0)
-
 
     return dev_labels
