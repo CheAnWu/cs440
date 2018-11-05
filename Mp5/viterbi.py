@@ -92,17 +92,19 @@ def viterbi(train, test):
                 word_to_tag_counts[word][tag] = 1
 
 # tag count per word/ total tag count - emission probability
-    for key, value in word_to_tag_counts.items():
-        word_to_tag_counts[key][value] = word_to_tag_counts[key][value]/tag_totals[value]
+    for key in word_to_tag_counts.keys():
+        for tag in tag_totals.keys():
+            if tag in word_to_tag_counts[key]:
+                word_to_tag_counts[key][tag] = word_to_tag_counts[key][tag]/tag_totals[tag]
 
 
-    initial_tag_probabilities = np.zeros(len(index_count))
-    transition_matrix = np.zeros(shape = (len(index_count), len(index_count)))
+    initial_tag_probabilities = np.zeros(index_count)
+    transition_matrix = np.zeros(shape = (index_count, index_count))
 
 
     for sentence in train:
         first = True
-        for i in sentence[:-1]:
+        for i in range(len(sentence[:-1])):
             word, tag = sentence[i]
 
             curr_tag_idx = tag_index[tag]
@@ -119,7 +121,7 @@ def viterbi(train, test):
 
     #Do we log this here?
     #count tag starts sentence / total num sentences
-    for i in initial_tag_probabilities:
+    for i in range(len(initial_tag_probabilities)):
         initial_tag_probabilities[i] = initial_tag_probabilities[i]/len(train)
 
 
