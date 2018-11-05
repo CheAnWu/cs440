@@ -14,6 +14,8 @@ files and classes when code is run, so be careful to not modify anything else.
 """
 import numpy as np
 import nltk
+from matplotlib import pyplot as plt
+
 
 
 def parseIntoWordList(train_set, train_labels, isSpam):
@@ -99,7 +101,6 @@ def parseIntoBigramList(train_set, train_labels, isSpam):
 
 
 def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter, org_dev_labels):
-    print("starting")
     """
     train_set - List of list of words corresponding with each email
     example: suppose I had two emails 'i like pie' and 'i like cake' in my training set
@@ -116,6 +117,7 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter, org_dev_la
     """
 
     # set to false to use bigram implementation instead
+    # isUnigram = True
     isUnigram = True
 
     # return predicted labels of development set
@@ -225,10 +227,12 @@ def naiveBayes(train_set, train_labels, dev_set, smoothing_parameter, org_dev_la
 
 
 def getBigram(bi_dev_ham, bi_dev_spam, dev_ham, dev_set, dev_spam, org_dev_labels):
-    LAMBDA_ARR = np.linspace(.1, 1, 10)
+    LAMBDA_ARR = np.linspace(0, 1, 11)
     # LAMBDA_ARR = [0]
 
     dev_labels = []
+    accuracies = []
+
     for x in LAMBDA_ARR:
         LAMBDA_VALUE = float(x)
         dev_labels.clear()
@@ -241,5 +245,61 @@ def getBigram(bi_dev_ham, bi_dev_spam, dev_ham, dev_set, dev_spam, org_dev_label
                 dev_labels.append(0)
 
         accuracy = np.mean(dev_labels == org_dev_labels)
-        # print("Bigram lambda: ", LAMBDA_VALUE, " Accuracy: ", accuracy)
+        accuracies.append(accuracy)
+        print("Bigram lambda: ", LAMBDA_VALUE, " Accuracy: ", accuracy)
+    plt.plot(LAMBDA_ARR, accuracies)
+    plt.ylabel('Accuracy')
+    plt.xlabel('Bigram Lambda Value')
+    plt.show()
     return dev_labels
+
+
+# smoothing_test.py
+
+# import argparse
+# import numpy as np
+# from matplotlib import pyplot as plt
+#
+# import reader
+# import naive_bayes as nb
+#
+#
+# def compute_accuracies(predicted_labels, dev_set, dev_labels):
+#     yhats = predicted_labels
+#     accuracy = np.mean(yhats == dev_labels)
+#
+#     return accuracy
+#
+#
+# def main(args):
+#     laplaceVals = np.linspace(.001, .002, 10)
+#     print(laplaceVals)
+#
+#     accuracies = []
+#     for currLaplaceVal in laplaceVals:
+#         train_set, train_labels, dev_set, dev_labels = reader.load_dataset(args.training_dir, args.development_dir,
+#                                                                            args.stemming)
+#         predicted_labels = nb.naiveBayes(train_set, train_labels, dev_set, float(currLaplaceVal), dev_labels)
+#         accuracy = compute_accuracies(predicted_labels, dev_set, dev_labels)
+#         print("Laplaceval:", float(currLaplaceVal), "Accuracy:", accuracy)
+#         accuracies.append(accuracy)
+#
+#     plt.plot(laplaceVals, accuracies)
+#     plt.ylabel('Accuracy')
+#     plt.xlabel('LaPlace Smoothing Parameter')
+#     plt.show()
+#
+#
+# if __name__ == "__main__":
+#     parser = argparse.ArgumentParser(description='CS440 MP4 Naive Bayes')
+#
+#     parser.add_argument('--training', dest='training_dir', type=str, default='mp4_data/training',
+#                         help='the directory of the training data')
+#     parser.add_argument('--development', dest='development_dir', type=str, default='mp4_data/development',
+#                         help='the directory of the development data')
+#     parser.add_argument('--stemming', default=False, action="store_true",
+#                         help='Use porter stemmer')
+#     parser.add_argument('--laplace', dest="laplace", type=float, default=1.0,
+#                         help='Laplace smoothing parameter - default 1.0')
+#     args = parser.parse_args()
+#     main(args)

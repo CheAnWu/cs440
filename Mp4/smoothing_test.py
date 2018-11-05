@@ -14,14 +14,11 @@ def compute_accuracies(predicted_labels, dev_set, dev_labels):
 
 
 def main(args):
-    print("Running test")
-
-    laplaceVals = np.linspace(.1, 1, 10)
+    laplaceVals = np.linspace(.001, .002, 10)
     print(laplaceVals)
 
     accuracies = []
     for currLaplaceVal in laplaceVals:
-        # print("Laplaceval:", float(currLaplaceVal))
         train_set, train_labels, dev_set, dev_labels = reader.load_dataset(args.training_dir, args.development_dir,
                                                                            args.stemming)
         predicted_labels = nb.naiveBayes(train_set, train_labels, dev_set, float(currLaplaceVal), dev_labels)

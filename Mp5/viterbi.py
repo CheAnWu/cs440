@@ -25,18 +25,20 @@ def baseline(train, test):
     tag_counts = {}
     most_likely_tags = {}
 
-    for pair in (sentence for sentence in train):
-        word, tag = pair
-        if tag in most_likely_tags:
-            most_likely_tags[tag] += 1
-        else:
-            most_likely_tags[tag] = 1
+    for sentence in train:
+        for pair in sentence:
+            word, tag = pair
+            if tag in most_likely_tags:
+                most_likely_tags[tag] += 1
+            else:
+                most_likely_tags[tag] = 1
 
-        if word in tag_counts:
-            tag_counts[word][tag] += 1
-        else:
-            tag_counts[word] = {}
-            tag_counts[word][tag] = 1
+            if word not in tag_counts:
+                tag_counts[word] = {}
+            if tag in tag_counts[word]:
+                tag_counts[word][tag] += 1
+            else:
+                tag_counts[word][tag] = 1
 
     max_tag = max(most_likely_tags.keys(), key=(lambda key: most_likely_tags[key]))
 
