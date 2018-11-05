@@ -22,6 +22,37 @@ output: list of sentences, each sentence is a list of (word,tag) pairs.
 '''
 def baseline(train, test):
     predicts = []
+    tag_counts = {}
+    most_likely_tags = {}
+
+    for sentence in train:
+        for pair in sentence:
+            word, tag = pair
+            if tag in most_likely_tags:
+                most_likely_tags[tag] += 1
+            else:
+                most_likely_tags[tag] = 1
+
+            if word not in tag_counts:
+                tag_counts[word] = {}
+            if tag in tag_counts[word]:
+                tag_counts[word][tag] += 1
+            else:
+                tag_counts[word][tag] = 1
+
+    max_tag = max(most_likely_tags.keys(), key=(lambda key: most_likely_tags[key]))
+
+    for sentence in test:
+        sentence_prediction = []
+        for word in sentence:
+            if word in tag_counts:
+                tag_map = tag_counts[word]
+                best_tag = max(tag_map.keys(), key=(lambda key: tag_map[key]))
+                sentence_prediction.append((word, best_tag))
+            else:
+                sentence_prediction.append((word, max_tag))
+        predicts.append(sentence_prediction)
+
     return predicts
 
 '''
