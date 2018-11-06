@@ -73,6 +73,8 @@ def viterbi(train, test):
     tag_index = {}
     index_count = 0
 
+    emission_smooth_param = 0.5
+
     for sentence in train:
         for pair in sentence:
             word, tag = pair
@@ -95,7 +97,7 @@ def viterbi(train, test):
     for key in word_to_tag_counts.keys():
         for tag in tag_totals.keys():
             if tag in word_to_tag_counts[key]:
-                word_to_tag_counts[key][tag] = word_to_tag_counts[key][tag]/tag_totals[tag]
+                word_to_tag_counts[key][tag] = (emission_smooth_param + word_to_tag_counts[key][tag])/ (tag_totals[tag] + emission_smooth_param*len(tag_totals))
 
 
     initial_tag_probabilities = np.zeros(index_count)
@@ -118,22 +120,61 @@ def viterbi(train, test):
                 transition_matrix[curr_tag_idx][tag_index[next_tag]] += 1
 
 
+    # not needed
+    init_smooth_param = 0.5
 
-    #Do we log this here?
     #count tag starts sentence / total num sentences
     for i in range(len(initial_tag_probabilities)):
-        initial_tag_probabilities[i] = initial_tag_probabilities[i]/len(train)
+        initial_tag_probabilities[i] = ( initial_tag_probabilities[i]) / (len(train) + len(initial_tag_probabilities))
 
 
+    transition_smooth_param = 0.5
 
     #LaPlace smoothing: (1+transition occurances)/(tag occurences + num tags)
     for tag, count in tag_totals.items():
         curr_idx = tag_index[tag]
         for i in range(len(transition_matrix)):
-            transition_matrix[curr_idx][i] = (transition_matrix[curr_idx][i] + 1)/ (count + len(tag_totals))
+            transition_matrix[curr_idx][i] = (transition_matrix[curr_idx][i] + transition_smooth_param)/ (count + transition_smooth_param * len(tag_totals))
 
+
+    for tag in tag_index.keys():
+        print(tag)
     print(initial_tag_probabilities)
     print(transition_matrix)
+
+
+
+    for sentence in test:
+        trellis = np.zeros(shape = (len(sentence), len(tag_index)))
+        first = True
+
+        for curr_word in sentence:
+
+            if first:
+                first = False
+                if curr_word not in word_to_tag_counts:
+                    for tag in tag_index.keys():
+                        probability = emission_smooth_param / (tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                        trellis[0][tag_index[tag]] = initial_tag_probabilities[tag_index[tag]] * probability
+
+                else:
+                    for tag in tag_index.keys():
+                        if tag not in word_to_tag_counts[curr_word]:
+                            probability = emission_smooth_param / (tag_totals[tag] + emission_smooth_param*len(tag_totals))
+                            trellis[0][tag_index[tag]] = initial_tag_probabilities[tag_index[tag]] * probability
+                        else:
+                            probability = word_to_tag_counts[curr_word][tag]
+                            trellis[0][tag_index[tag]] = initial_tag_probabilities[tag_index[tag]] * probability
+
+
+
+
+
+
+
+
+
+
 
 
 
