@@ -103,10 +103,9 @@ def viterbi(train, test):
 
     # tag count per word/ total tag count - emission probability
     for key in word_to_tag_counts.keys():
-        for tag in tag_totals.keys():
-            if tag in word_to_tag_counts[key]:
-                word_to_tag_counts[key][tag] = (emission_smooth_param + word_to_tag_counts[key][tag]) / (
-                    tag_totals[tag] + emission_smooth_param * len(tag_totals))
+        for tag in word_to_tag_counts[key].keys():
+            word_to_tag_counts[key][tag] = (emission_smooth_param + word_to_tag_counts[key][tag]) / (
+                tag_totals[tag] + emission_smooth_param * len(tag_totals))
 
     initial_tag_probabilities = np.zeros(index_count)
     transition_matrix = np.zeros(shape=(index_count, index_count))
