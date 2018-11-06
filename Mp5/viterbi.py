@@ -22,6 +22,7 @@ output: list of sentences, each sentence is a list of (word,tag) pairs.
 '''
 
 import numpy as np
+import math
 
 
 def baseline(train, test):
@@ -60,11 +61,14 @@ def baseline(train, test):
     return predicts
 
 
+<<<<<<< Updated upstream
 def getHighestValue(tag_map):
     best_tag = max(tag_map.keys(), key=(lambda key: tag_map[key]))
     return best_tag
 
 
+=======
+>>>>>>> Stashed changes
 '''
 TODO: implement the Viterbi algorithm.
 input:  training data (list of sentences, with tags on the words)
@@ -81,7 +85,7 @@ def viterbi(train, test):
     tag_index = {}
     index_count = 0
 
-    emission_smooth_param = 0.5
+    emission_smooth_param = 0.8
 
     for sentence in train:
         for pair in sentence:
@@ -103,9 +107,16 @@ def viterbi(train, test):
 
     # tag count per word/ total tag count - emission probability
     for key in word_to_tag_counts.keys():
+<<<<<<< Updated upstream
         for tag in word_to_tag_counts[key].keys():
             word_to_tag_counts[key][tag] = (emission_smooth_param + word_to_tag_counts[key][tag]) / (
                 tag_totals[tag] + emission_smooth_param * len(tag_totals))
+=======
+        for tag in tag_totals.keys():
+            if tag in word_to_tag_counts[key]:
+                word_to_tag_counts[key][tag] = (emission_smooth_param + word_to_tag_counts[key][tag]) / (
+                            tag_totals[tag] + emission_smooth_param * len(tag_totals))
+>>>>>>> Stashed changes
 
     initial_tag_probabilities = np.zeros(index_count)
     transition_matrix = np.zeros(shape=(index_count, index_count))
@@ -136,39 +147,109 @@ def viterbi(train, test):
 
     # LaPlace smoothing: (1+transition occurances)/(tag occurences + num tags)
     for tag, count in tag_totals.items():
-        curr_idx = tag_index[tag]
+        prev_idx = tag_index[tag]
         for i in range(len(transition_matrix)):
+<<<<<<< Updated upstream
             transition_matrix[curr_idx][i] = (transition_matrix[curr_idx][i] + transition_smooth_param) / (
                 count + transition_smooth_param * len(tag_totals))
+=======
+            transition_matrix[prev_idx][i] = (transition_matrix[prev_idx][i] + transition_smooth_param) / (
+                        count + transition_smooth_param * len(tag_totals))
+>>>>>>> Stashed changes
 
     for tag in tag_index.keys():
         print(tag)
     print(initial_tag_probabilities)
     print(transition_matrix)
 
+<<<<<<< Updated upstream
     for sentence in test:
         trellis = np.zeros(shape=(len(sentence), len(tag_index)))
         first = True
+=======
+    tag_names = []
+    for tag in tag_index.keys():
+        tag_names.append(tag)
 
-        for curr_word in sentence:
+    for sentence in test:
+        print("NEW SENTENCE**************************")
+        trellis = []
+>>>>>>> Stashed changes
 
-            if first:
-                first = False
+        for i in range(len(sentence)):
+            temp = []
+            curr_word = sentence[i]
+
+            print(tag_names[i])
+
+            if i == 0:  # first word in sentence
                 if curr_word not in word_to_tag_counts:
                     for tag in tag_index.keys():
                         probability = emission_smooth_param / (
+<<<<<<< Updated upstream
                             tag_totals[tag] + emission_smooth_param * len(tag_totals))
                         trellis[0][tag_index[tag]] = initial_tag_probabilities[tag_index[tag]] * probability
+=======
+                                    tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                        tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
+                        temp.append(tuple)
+>>>>>>> Stashed changes
 
                 else:
                     for tag in tag_index.keys():
+
                         if tag not in word_to_tag_counts[curr_word]:
                             probability = emission_smooth_param / (
+<<<<<<< Updated upstream
                                 tag_totals[tag] + emission_smooth_param * len(tag_totals))
                             trellis[0][tag_index[tag]] = initial_tag_probabilities[tag_index[tag]] * probability
                         else:
                             probability = word_to_tag_counts[curr_word][tag]
                             trellis[0][tag_index[tag]] = initial_tag_probabilities[tag_index[tag]] * probability
+=======
+                                        tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                            tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
+                            temp.append(tuple)
+                        else:
+                            probability = word_to_tag_counts[curr_word][tag]
+                            tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
+                            temp.append(tuple)
+            else:
+                probability = 0
+                for tag in tag_index.keys():
+                    prev_idx = tag_index[tag]
+
+                    for j in range(len(tag_index)):
+                        probability = -99999
+                        if curr_word not in word_to_tag_counts:
+                            probability = emission_smooth_param / (
+                                    tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                        else:
+                            if tag not in word_to_tag_counts[curr_word]:
+                                probability = emission_smooth_param / (
+                                        tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                            else:
+                                probability = word_to_tag_counts[curr_word][tag]
+
+                        if trellis[i - 1][prev_idx] == 0:
+                            print("yooo")
+
+                        prev_prob = trellis[i - 1][prev_idx]
+
+                        log2 = np.log(transition_matrix[prev_idx][j])
+                        log3 = np.log(probability)
+                        probability = prev_prob[0] + log2 + log3
+
+                        tuple = (probability, tag_names[prev_idx])
+                        if prev_idx == 0:
+                            temp.append(tuple)
+                        elif (temp[j][0] < probability):
+                            temp[j] = tuple
+            trellis.append(temp)
+
+        print("Printing trellis")
+        print(trellis)
+>>>>>>> Stashed changes
 
     predicts = []
     return predicts
