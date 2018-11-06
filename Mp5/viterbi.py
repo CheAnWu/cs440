@@ -45,14 +45,14 @@ def baseline(train, test):
             else:
                 word_to_tag_counts[word][tag] = 1
 
-    max_tag = getHighestValue(tag_totals)
+    max_tag = max(tag_totals.keys(), key=(lambda key: tag_totals[key]))
 
     for sentence in test:
         sentence_prediction = []
         for word in sentence:
             if word in word_to_tag_counts:
                 tag_map = word_to_tag_counts[word]
-                best_tag = getHighestValue(tag_map)
+                best_tag = max(tag_map.keys(), key=(lambda key: tag_map[key]))
                 sentence_prediction.append((word, best_tag))
             else:
                 sentence_prediction.append((word, max_tag))
@@ -61,14 +61,6 @@ def baseline(train, test):
     return predicts
 
 
-<<<<<<< Updated upstream
-def getHighestValue(tag_map):
-    best_tag = max(tag_map.keys(), key=(lambda key: tag_map[key]))
-    return best_tag
-
-
-=======
->>>>>>> Stashed changes
 '''
 TODO: implement the Viterbi algorithm.
 input:  training data (list of sentences, with tags on the words)
@@ -107,16 +99,10 @@ def viterbi(train, test):
 
     # tag count per word/ total tag count - emission probability
     for key in word_to_tag_counts.keys():
-<<<<<<< Updated upstream
-        for tag in word_to_tag_counts[key].keys():
-            word_to_tag_counts[key][tag] = (emission_smooth_param + word_to_tag_counts[key][tag]) / (
-                tag_totals[tag] + emission_smooth_param * len(tag_totals))
-=======
         for tag in tag_totals.keys():
             if tag in word_to_tag_counts[key]:
                 word_to_tag_counts[key][tag] = (emission_smooth_param + word_to_tag_counts[key][tag]) / (
                             tag_totals[tag] + emission_smooth_param * len(tag_totals))
->>>>>>> Stashed changes
 
     initial_tag_probabilities = np.zeros(index_count)
     transition_matrix = np.zeros(shape=(index_count, index_count))
@@ -149,24 +135,14 @@ def viterbi(train, test):
     for tag, count in tag_totals.items():
         prev_idx = tag_index[tag]
         for i in range(len(transition_matrix)):
-<<<<<<< Updated upstream
-            transition_matrix[curr_idx][i] = (transition_matrix[curr_idx][i] + transition_smooth_param) / (
-                count + transition_smooth_param * len(tag_totals))
-=======
             transition_matrix[prev_idx][i] = (transition_matrix[prev_idx][i] + transition_smooth_param) / (
                         count + transition_smooth_param * len(tag_totals))
->>>>>>> Stashed changes
 
     for tag in tag_index.keys():
         print(tag)
     print(initial_tag_probabilities)
     print(transition_matrix)
 
-<<<<<<< Updated upstream
-    for sentence in test:
-        trellis = np.zeros(shape=(len(sentence), len(tag_index)))
-        first = True
-=======
     tag_names = []
     for tag in tag_index.keys():
         tag_names.append(tag)
@@ -174,7 +150,6 @@ def viterbi(train, test):
     for sentence in test:
         print("NEW SENTENCE**************************")
         trellis = []
->>>>>>> Stashed changes
 
         for i in range(len(sentence)):
             temp = []
@@ -186,27 +161,15 @@ def viterbi(train, test):
                 if curr_word not in word_to_tag_counts:
                     for tag in tag_index.keys():
                         probability = emission_smooth_param / (
-<<<<<<< Updated upstream
-                            tag_totals[tag] + emission_smooth_param * len(tag_totals))
-                        trellis[0][tag_index[tag]] = initial_tag_probabilities[tag_index[tag]] * probability
-=======
                                     tag_totals[tag] + emission_smooth_param * len(tag_totals))
                         tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
                         temp.append(tuple)
->>>>>>> Stashed changes
 
                 else:
                     for tag in tag_index.keys():
 
                         if tag not in word_to_tag_counts[curr_word]:
                             probability = emission_smooth_param / (
-<<<<<<< Updated upstream
-                                tag_totals[tag] + emission_smooth_param * len(tag_totals))
-                            trellis[0][tag_index[tag]] = initial_tag_probabilities[tag_index[tag]] * probability
-                        else:
-                            probability = word_to_tag_counts[curr_word][tag]
-                            trellis[0][tag_index[tag]] = initial_tag_probabilities[tag_index[tag]] * probability
-=======
                                         tag_totals[tag] + emission_smooth_param * len(tag_totals))
                             tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
                             temp.append(tuple)
@@ -249,7 +212,7 @@ def viterbi(train, test):
 
         print("Printing trellis")
         print(trellis)
->>>>>>> Stashed changes
+
 
     predicts = []
     return predicts
