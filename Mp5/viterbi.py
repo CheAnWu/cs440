@@ -22,7 +22,6 @@ output: list of sentences, each sentence is a list of (word,tag) pairs.
 '''
 
 import numpy as np
-import math
 
 
 def baseline(train, test):
@@ -45,20 +44,24 @@ def baseline(train, test):
             else:
                 word_to_tag_counts[word][tag] = 1
 
-    max_tag = max(tag_totals.keys(), key=(lambda key: tag_totals[key]))
+    max_tag = getHighestValue(tag_totals)
 
     for sentence in test:
         sentence_prediction = []
         for word in sentence:
             if word in word_to_tag_counts:
                 tag_map = word_to_tag_counts[word]
-                best_tag = max(tag_map.keys(), key=(lambda key: tag_map[key]))
+                best_tag = getHighestValue(tag_map)
                 sentence_prediction.append((word, best_tag))
             else:
                 sentence_prediction.append((word, max_tag))
         predicts.append(sentence_prediction)
 
     return predicts
+
+
+def getHighestValue(tag_map):
+    return max(tag_map.keys(), key=(lambda key: tag_map[key]))
 
 
 '''
@@ -99,10 +102,9 @@ def viterbi(train, test):
 
     # tag count per word/ total tag count - emission probability
     for key in word_to_tag_counts.keys():
-        for tag in tag_totals.keys():
-            if tag in word_to_tag_counts[key]:
-                word_to_tag_counts[key][tag] = (emission_smooth_param + word_to_tag_counts[key][tag]) / (
-                            tag_totals[tag] + emission_smooth_param * len(tag_totals))
+        for tag in word_to_tag_counts[key].keys():
+            word_to_tag_counts[key][tag] = (emission_smooth_param + word_to_tag_counts[key][tag]) / (
+                tag_totals[tag] + emission_smooth_param * len(tag_totals))
 
     initial_tag_probabilities = np.zeros(index_count)
     transition_matrix = np.zeros(shape=(index_count, index_count))
@@ -136,7 +138,7 @@ def viterbi(train, test):
         prev_idx = tag_index[tag]
         for i in range(len(transition_matrix)):
             transition_matrix[prev_idx][i] = (transition_matrix[prev_idx][i] + transition_smooth_param) / (
-                        count + transition_smooth_param * len(tag_totals))
+                count + transition_smooth_param * len(tag_totals))
 
     for tag in tag_index.keys():
         print(tag)
@@ -161,7 +163,7 @@ def viterbi(train, test):
                 if curr_word not in word_to_tag_counts:
                     for tag in tag_index.keys():
                         probability = emission_smooth_param / (
-                                    tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                            tag_totals[tag] + emission_smooth_param * len(tag_totals))
                         tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
                         temp.append(tuple)
 
@@ -170,7 +172,7 @@ def viterbi(train, test):
 
                         if tag not in word_to_tag_counts[curr_word]:
                             probability = emission_smooth_param / (
-                                        tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                                tag_totals[tag] + emission_smooth_param * len(tag_totals))
                             tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
                             temp.append(tuple)
                         else:
@@ -186,11 +188,11 @@ def viterbi(train, test):
                         probability = -99999
                         if curr_word not in word_to_tag_counts:
                             probability = emission_smooth_param / (
-                                    tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                                tag_totals[tag] + emission_smooth_param * len(tag_totals))
                         else:
                             if tag not in word_to_tag_counts[curr_word]:
                                 probability = emission_smooth_param / (
-                                        tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                                    tag_totals[tag] + emission_smooth_param * len(tag_totals))
                             else:
                                 probability = word_to_tag_counts[curr_word][tag]
 
@@ -212,7 +214,6 @@ def viterbi(train, test):
 
         print("Printing trellis")
         print(trellis)
-
 
     predicts = []
     return predicts
