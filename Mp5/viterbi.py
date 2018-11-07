@@ -165,7 +165,7 @@ def viterbi(train, test):
                     for tag in tag_index.keys():
                         probability = emission_smooth_param / (
                             tag_totals[tag] + emission_smooth_param * len(tag_totals))
-                        tuple = (initial_tag_probabilities[tag_index[tag]] * probability, tag)
+                        tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
                         temp.append(tuple)
 
                 else:
@@ -174,7 +174,7 @@ def viterbi(train, test):
                         if tag not in word_to_tag_counts[curr_word]:
                             probability = emission_smooth_param / (
                                 tag_totals[tag] + emission_smooth_param * len(tag_totals))
-                            tuple = (initial_tag_probabilities[tag_index[tag]] * probability, tag)
+                            tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
                             temp.append(tuple)
                         else:
                             probability = word_to_tag_counts[curr_word][tag]
@@ -190,10 +190,12 @@ def viterbi(train, test):
                         if curr_word not in word_to_tag_counts:
                             probability = emission_smooth_param / (
                                 tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                                # emission_smooth_param * len(tag_totals))
                         else:
                             if tag not in word_to_tag_counts[curr_word]:
                                 probability = emission_smooth_param / (
                                     tag_totals[tag] + emission_smooth_param * len(tag_totals))
+                                    # emission_smooth_param * len(tag_totals))
                             else:
                                 probability = word_to_tag_counts[curr_word][tag]
 
@@ -239,10 +241,6 @@ def viterbi(train, test):
 
 
 
-        print(predicted_sentence)
         predicts.append(list(zip(sentence, predicted_sentence)))
-
-
-    print(predicts)
 
     return predicts
