@@ -83,7 +83,7 @@ def viterbi(train, test):
     tag_index = {}
     index_count = 0
 
-    emission_smooth_param = 0.00001
+    emission_smooth_param = 0.01
 
     for sentence in train:
         for pair in sentence:
@@ -133,7 +133,7 @@ def viterbi(train, test):
     for i in range(len(initial_tag_probabilities)):
         initial_tag_probabilities[i] = (initial_tag_probabilities[i]) / (len(train))
 
-    transition_smooth_param = 0.00001
+    transition_smooth_param = 0.01
 
     # LaPlace smoothing: (1+transition occurances)/(tag occurences + num tags)
     for tag, count in tag_totals.items():
@@ -142,10 +142,6 @@ def viterbi(train, test):
             transition_matrix[prev_idx][i] = (transition_matrix[prev_idx][i] + transition_smooth_param) / (
                 count + transition_smooth_param * len(tag_totals))
 
-    for tag in tag_index.keys():
-        print(tag)
-    print(initial_tag_probabilities)
-    print(transition_matrix)
 
     tag_names = []
     for tag in tag_index.keys():
@@ -157,7 +153,6 @@ def viterbi(train, test):
         for i in range(len(sentence)):
             temp = []
             curr_word = sentence[i]
-            print(curr_word)
 
 
             if i == 0:  # first word in sentence
@@ -197,9 +192,6 @@ def viterbi(train, test):
                             else:
                                 probability = word_to_tag_counts[curr_word][tag]
 
-                        if trellis[i - 1][prev_idx] == 0:
-                            print("yooo")
-
                         prev_prob = trellis[i - 1][prev_idx]
 
                         log2 = np.log(transition_matrix[prev_idx][j])
@@ -211,11 +203,8 @@ def viterbi(train, test):
                             temp.append(tuple)
                         elif (temp[j][0] < probability):
                             temp[j] = tuple
-            print(temp)
             trellis.append(temp)
 
-        print("printing trellis")
-        print(trellis)
         if len(trellis) == 0:
             predicts.append([])
             continue
@@ -235,14 +224,8 @@ def viterbi(train, test):
         max_start_tag = max(trellis[0], key=lambda pair: pair[0])[1]
         predicted_sentence[0] = max_start_tag
 
-
-
-
-
-        print(predicted_sentence)
         predicts.append(list(zip(sentence, predicted_sentence)))
 
 
-    print(predicts)
 
     return predicts
