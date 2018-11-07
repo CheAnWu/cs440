@@ -321,7 +321,7 @@ def a_star_heuristic(spot, end):
     return math.hypot(spot[1] - end[1], spot[0] - end[0])
 
 def astar(maze):
-
+    print("Start astar")
     num_states_explored = 0
 
     end = maze.getObjectives()[0]

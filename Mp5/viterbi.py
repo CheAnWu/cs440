@@ -123,18 +123,17 @@ def viterbi(train, test):
                 initial_tag_probabilities[curr_tag_idx] += 1
                 first = False
 
-            else:
-                next_tag = sentence[i + 1][1]
-                transition_matrix[curr_tag_idx][tag_index[next_tag]] += 1
+            next_tag = sentence[i + 1][1]
+            transition_matrix[curr_tag_idx][tag_index[next_tag]] += 1
 
     # not needed
     init_smooth_param = 0.5
 
     # count tag starts sentence / total num sentences
     for i in range(len(initial_tag_probabilities)):
-        initial_tag_probabilities[i] = (initial_tag_probabilities[i]) / (len(train) + len(initial_tag_probabilities))
+        initial_tag_probabilities[i] = (initial_tag_probabilities[i]) / (len(train))
 
-    transition_smooth_param = 0.01
+    transition_smooth_param = 0.00001
 
     # LaPlace smoothing: (1+transition occurances)/(tag occurences + num tags)
     for tag, count in tag_totals.items():
@@ -158,6 +157,7 @@ def viterbi(train, test):
         for i in range(len(sentence)):
             temp = []
             curr_word = sentence[i]
+            print(curr_word)
 
 
             if i == 0:  # first word in sentence
@@ -211,8 +211,11 @@ def viterbi(train, test):
                             temp.append(tuple)
                         elif (temp[j][0] < probability):
                             temp[j] = tuple
+            print(temp)
             trellis.append(temp)
 
+        print("printing trellis")
+        print(trellis)
         if len(trellis) == 0:
             predicts.append([])
             continue
@@ -222,14 +225,17 @@ def viterbi(train, test):
 
         max_tag_idx = tuple_list.index((max(tuple_list, key=lambda pair: pair[0])))
         predicted_sentence.append(tag_names[max_tag_idx])
-        prev_tag = max(tuple_list, key=lambda pair: pair[0])[1]
+
+        prev_tag = max(tuple_list, key=lambda pair: pair[0])
 
         for i in range(len(trellis)-1, 0, -1):
-            predicted_sentence.insert(0, prev_tag)
-            prev_tag = trellis[i-1][tag_index[prev_tag]][1]
+            prev_tag = trellis[i - 1][tag_index[prev_tag[1]]]
+            predicted_sentence.insert(0, prev_tag[1])
 
 
+        print(predicted_sentence)
         predicts.append(list(zip(sentence, predicted_sentence)))
+
 
     print(predicts)
 

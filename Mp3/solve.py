@@ -2,7 +2,6 @@ import numpy as np
 from queue import PriorityQueue
 from pythonds.basic.stack import Stack
 import copy
-import time
 
 """
     Implement me!!!!!!!
@@ -250,7 +249,7 @@ def prune(rowVariables, colVariables, isRow, solutionMatrix):
             i += 1
     return hasChanged, rowVariables, colVariables
 
-def testAgainstSolutionMatrix(variableIndex, possibilityIndex, solutionMatrix, i):
+def testAgainstSolutionMatrixRow(variableIndex, possibilityIndex, solutionMatrix, i):
     testval = variableIndex[possibilityIndex]
     for k in range(len(solutionMatrix[i])):
         if solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != testval[k]:
@@ -258,22 +257,23 @@ def testAgainstSolutionMatrix(variableIndex, possibilityIndex, solutionMatrix, i
 
     return True
 
+def testAgainstSolutionMatrixCol(variableIndex, possibilityIndex, solutionMatrix, i):
+    testval = variableIndex[possibilityIndex]
+    for k in range(len(solutionMatrix[:,i])):
+        if solutionMatrix[:,i][k] != -1 and solutionMatrix[:,i][k] != testval[k]:
+            return False
+
+    return True
+
 def removeImpossibleValues(rowVariables, colVariables, solutionMatrix):
     i = 0
     for rowIndex in rowVariables:
-        # for possibilityIndex in range(len(rowIndex)):
-        rowVariables[i] = [rowIndex[possibilityIndex] for possibilityIndex in range(len(rowIndex)) if testAgainstSolutionMatrix(rowIndex, possibilityIndex, solutionMatrix, i)]
-            # testval = rowIndex[possibilityIndex]
-            # for k in range(len(solutionMatrix[i])):
-            #     if solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != testval[k]:
-            #         rowIndex.pop(possibilityIndex)
-            #         break
+        rowVariables[i] = [rowIndex[possibilityIndex] for possibilityIndex in range(len(rowIndex)) if testAgainstSolutionMatrixRow(rowIndex, possibilityIndex, solutionMatrix, i)]
         i += 1
-        # rowVariables[i] = [rowIndex[i] for i in len(rowIndex) if for k in range(len(solutionMatrix[i])) solutionMatrix[i][k] != -1 and solutionMatrix[i][k] != rowIndex[i][k]]
 
     i = 0
     for colIndex in colVariables:
-        colVariables[i] = [colIndex[possibilityIndex] for possibilityIndex in range(len(colIndex)) if testAgainstSolutionMatrix(colIndex, possibilityIndex, solutionMatrix, i)]
+        colVariables[i] = [colIndex[possibilityIndex] for possibilityIndex in range(len(colIndex)) if testAgainstSolutionMatrixCol(colIndex, possibilityIndex, solutionMatrix, i)]
         i += 1
 
     return solutionMatrix
@@ -353,7 +353,6 @@ def solve(constraints):
 
         # finished! All variables have 1 value
         if (remainingVals == 1):
-            # print("Hell yeah! We finished")
             break
 
         # finally, move to the nextNode
