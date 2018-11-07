@@ -74,6 +74,9 @@ output: list of sentences with tags on the words
 
 
 def viterbi(train, test):
+    predicts = []
+
+
     word_to_tag_counts = {}
     tag_totals = {}
 
@@ -150,14 +153,12 @@ def viterbi(train, test):
         tag_names.append(tag)
 
     for sentence in test:
-        print("NEW SENTENCE**************************")
         trellis = []
 
         for i in range(len(sentence)):
             temp = []
             curr_word = sentence[i]
 
-            print(tag_names[i])
 
             if i == 0:  # first word in sentence
                 if curr_word not in word_to_tag_counts:
@@ -212,8 +213,24 @@ def viterbi(train, test):
                             temp[j] = tuple
             trellis.append(temp)
 
-        print("Printing trellis")
-        print(trellis)
+        if len(trellis) == 0:
+            predicts.append([])
+            continue
 
-    predicts = []
+        tuple_list = trellis[len(trellis) - 1]
+        predicted_sentence = []
+
+        max_tag_idx = tuple_list.index((max(tuple_list, key=lambda pair: pair[0])))
+        predicted_sentence.append(tag_names[max_tag_idx])
+        prev_tag = max(tuple_list, key=lambda pair: pair[0])[1]
+
+        for i in range(len(trellis)-1, 0, -1):
+            predicted_sentence.insert(0, prev_tag)
+            prev_tag = trellis[i-1][tag_index[prev_tag]][1]
+
+
+        predicts.append(list(zip(sentence, predicted_sentence)))
+
+    print(predicts)
+
     return predicts
