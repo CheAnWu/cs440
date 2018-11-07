@@ -165,7 +165,7 @@ def viterbi(train, test):
                     for tag in tag_index.keys():
                         probability = emission_smooth_param / (
                             tag_totals[tag] + emission_smooth_param * len(tag_totals))
-                        tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
+                        tuple = (initial_tag_probabilities[tag_index[tag]] * probability, tag)
                         temp.append(tuple)
 
                 else:
@@ -174,11 +174,11 @@ def viterbi(train, test):
                         if tag not in word_to_tag_counts[curr_word]:
                             probability = emission_smooth_param / (
                                 tag_totals[tag] + emission_smooth_param * len(tag_totals))
-                            tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
+                            tuple = (initial_tag_probabilities[tag_index[tag]] * probability, tag)
                             temp.append(tuple)
                         else:
                             probability = word_to_tag_counts[curr_word][tag]
-                            tuple = (initial_tag_probabilities[tag_index[tag]] * probability, 'START')
+                            tuple = (initial_tag_probabilities[tag_index[tag]] * probability, tag)
                             temp.append(tuple)
             else:
                 probability = 0
@@ -231,6 +231,12 @@ def viterbi(train, test):
         for i in range(len(trellis)-1, 0, -1):
             prev_tag = trellis[i - 1][tag_index[prev_tag[1]]]
             predicted_sentence.insert(0, prev_tag[1])
+
+        max_start_tag = max(trellis[0], key=lambda pair: pair[0])[1]
+        predicted_sentence[0] = max_start_tag
+
+
+
 
 
         print(predicted_sentence)
