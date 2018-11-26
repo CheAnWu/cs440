@@ -16,7 +16,7 @@ import numpy as np
 
 def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     """
-    train_set - A Numpy array of 32x32x3 images of shape [7500, 3072].
+    train_set - A Numpy array of 32x32x3 images of shape [7500, 3072]. --> [7500, 3073]
                 This can be thought of as a list of 7500 vectors that are each
                 3072 dimensional.  We have 3072 dimensions because there are
                 each image is 32x32 and we have 3 color channels.
@@ -33,24 +33,58 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     # TODO: Write your code here
     # return predicted labels of development set
 
-    weights = np.zeros(3072)
+    weights = np.zeros(3073)
     results = np.zeros(7500)
-    offset = 0
+
+    ones = np.ones((7500, 1))
+    new_train = np.hstack((train_set, ones))
+
+    new_labels = train_labels.copy()
+    for i in range(len(new_labels)):
+        if new_labels[i] == 0:
+            new_labels[i] == -1
+
+
 
 #Training
-    for iter in range(max_iter):
-        curr_image = train_set(iter)
-        score = np.dot(curr_image, weights)
-        if(score > 0):
-            results[iter] = 1
+    for epoch in range(max_iter):
+        for image_count, image in enumerate(new_train):
+            score = np.dot(image, weights.T)
+            results[image_count] = np.sign(score)
+
+        for i in range(3073):
+            if results[image_count] == 1 and train_labels[image_count] == 0:
+                weights[i] = weights[i] + learning_rate * -1 * image[i]
+            elif results[image_count] == -1 and train_labels[image_count] == 1:
+                weights[i] = weights[i] + learning_rate * 1 * image[i]
+
+#Testing
+    dev_results = np.zeros(2500)
+
+    dev_ones = np.ones((2500, 1))
+    new_dev = np.hstack((dev_set, dev_ones))
+
+    for image_count, image in enumerate(new_dev):
+
+        score = np.dot(image, weights.T)
+
+        if (score > 0):
+            dev_results[image_count] = 1
         else:
-            results[iter] = -1
+            dev_results[image_count] = -1
+
+    return dev_results
 
 
 
 
 
-    return []
+
+
+
+
+
+
 
 def classifyEC(train_set, train_labels, dev_set,learning_rate,max_iter):
     # Write your code here if you would like to attempt the extra credit
