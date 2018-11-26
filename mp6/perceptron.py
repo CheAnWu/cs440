@@ -12,8 +12,9 @@ This is the main entry point for MP6. You should only modify code
 within this file -- the unrevised staff files will be used for all other
 files and classes when code is run, so be careful to not modify anything else.
 """
+import numpy as np
 
-def classify(train_set, train_labels, dev_set, learning_rate,max_iter):
+def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     """
     train_set - A Numpy array of 32x32x3 images of shape [7500, 3072].
                 This can be thought of as a list of 7500 vectors that are each
@@ -31,6 +32,24 @@ def classify(train_set, train_labels, dev_set, learning_rate,max_iter):
     """
     # TODO: Write your code here
     # return predicted labels of development set
+
+    weights = np.zeros(3072)
+    results = np.zeros(7500)
+    offset = 0
+
+#Training
+    for iter in range(max_iter):
+        curr_image = train_set(iter)
+        score = np.dot(curr_image, weights)
+        if(score > 0):
+            results[iter] = 1
+        else:
+            results[iter] = -1
+
+
+
+
+
     return []
 
 def classifyEC(train_set, train_labels, dev_set,learning_rate,max_iter):
