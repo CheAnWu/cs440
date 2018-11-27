@@ -34,7 +34,6 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     # return predicted labels of development set
 
     weights = np.random.rand(3073)
-    print(weights)
     results = np.zeros(7500)
 
     ones = np.ones((7500, 1))
@@ -58,7 +57,7 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
             results[image_count] = np.sign(score)
 
             if results[image_count] != new_labels[image_count]:
-                weights += [x * new_labels[image_count] * learning_rate for x in image]
+                weights += (new_labels[image_count] * learning_rate) * image
 
         learning_rate -= learn_rate_decrease
     print(weights)
