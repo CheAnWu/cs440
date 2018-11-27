@@ -31,52 +31,41 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
               It is the same format as train_set
     """
     # return predicted labels of development set
+    weights = np.zeros(3073)
 
-
-    weights = np.random.rand(3073)
-    print(weights)
-    results = np.zeros(7500)
-
+    # Add a column of ones for the bias. Gets calculated immediately with the dot product for optimized runtime
+    # Piazza post @694
     ones = np.ones((7500, 1))
     new_train = np.hstack((train_set, ones))
-    new_labels = np.zeros(len(train_labels))
+    label_vals = np.zeros(7500)
 
-    for i in range(len(new_labels)):
+    #Putting into numerical forward as we were given booleans
+    for i in range(len(train_labels)):
         if train_labels[i]:
-            new_labels[i] = 1
+            label_vals[i] = 1
         else:
-            new_labels[i] = -1
-
-    # learn_rate_decrease = learning_rate/max_iter
-
+            label_vals[i] = -1
 #Training
     for epoch in range(max_iter):
         for image_count, image in enumerate(new_train):
-            score = np.dot(image, weights)
-            results[image_count] = np.sign(score)
+            score = np.dot(weights, image)
+            result = np.sign(score)
 
-            if results[image_count] != new_labels[image_count]:
-                weights += [x * new_labels[image_count] * learning_rate for x in image]
+            if result != label_vals[image_count]:
+                weights += (learning_rate * label_vals[image_count]) * image
 
-        # learning_rate -= learn_rate_decrease
-    print(weights)
-
+    dev_labels = np.zeros(2500)
+    ones = np.ones((2500, 1))
+    new_dev = np.hstack((dev_set, ones))
 #Testing
-    dev_results = np.zeros((2500, 1))
-    dev_ones = np.ones((2500, 1))
-    new_dev = np.hstack((dev_set, dev_ones))
-
     for image_count, image in enumerate(new_dev):
-        score = np.dot(image, weights)
+        score = np.dot(weights, image)
+        result = np.sign(score)
+        if result == 1:
+            dev_labels[image_count] = 1
 
-        if np.sign(score) > 0:
-            classification = 1
-        else:
-            classification = 0
+    return dev_labels
 
-        dev_results[image_count] = classification
-
-    return dev_results
 
 
 
