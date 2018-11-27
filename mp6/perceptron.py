@@ -39,6 +39,8 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     new_train = np.hstack((train_set, ones))
     label_vals = np.zeros(7500)
 
+    learning_rate_decrease = learning_rate/(max_iter * 5)
+
     #Putting into numerical forward as we were given booleans
     for i in range(len(train_labels)):
         if train_labels[i]:
@@ -53,6 +55,8 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
 
             if result != label_vals[image_count]:
                 weights += (learning_rate * label_vals[image_count]) * image
+
+        learning_rate -= learning_rate_decrease
 
     dev_labels = np.zeros(2500)
     ones = np.ones((2500, 1))
