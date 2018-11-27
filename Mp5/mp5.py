@@ -1,69 +1,133 @@
-# mp5.py
-# ---------------
-# Licensing Information:  You are free to use or extend this projects for
-# educational purposes provided that (1) you do not distribute or publish
-# solutions, (2) you retain this notice, and (3) you provide clear
-# attribution to the University of Illinois at Urbana-Champaign
+# ----------------------------------------------------------
 #
-# Created by Renxuan Wang (renxuan2@illinois.edu) on 10/18/2018
-import sys
-import argparse
+# THIS CODE IS INCOMPLETE! BUT MAY HELP WHEN GETTING STARTED
+#
+# ----------------------------------------------------------
+import numpy as np
+import numpy.linalg as la
+import pandas as pd
+import math
 
-from reader import load_dataset, strip_tags
-from viterbi import viterbi, baseline
+# Read in the data files
+tumor_data_train = pd.io.parsers.read_csv("breast-cancer-train.dat", header=None, names=labels)
+tumor_data_test = pd.io.parsers.read_csv("breast-cancer-validate.dat", header=None, names=labels)
 
-"""
-This file contains the main application that is run for this MP.
-"""
+# Construct your A matrices
+train = np.ndarray(shape=(len(tumor_data_train.values), len(tumor_data_train.values[0]) - 2))
+test = np.ndarray(shape=(len(tumor_data_test.values), len(tumor_data_test.values[0]) - 2))
 
-'''
-Evaluate output
-input:  two lists of sentences with tags on the words
-        one is predicted output, one is the correct tags
-output: accuracy number (percentage of tags that match)
-'''
-def compute_accuracies(predicted_sentences, tag_sentences):
-    correct = 0
-    incorrect = 0
-    count = 0
-    for i in range(len(predicted_sentences)):
-        for j in range(len(predicted_sentences[i])):
-            count += 1
-            if predicted_sentences[i][j][1] == tag_sentences[i][j][1]:
-                correct += 1
-            else:
-                incorrect += 1
-    return correct/(correct + incorrect)
+for i in range(len(tumor_data_train)):
+    temp = []
+    for j in range(len(tumor_data_train.values[0]) - 2):
+        temp.append(tumor_data_train.values[i][j + 2])
+    train[i] = np.array(temp)
 
+for i in range(len(tumor_data_test)):
+    temp = []
+    for j in range(len(tumor_data_test.values[0]) - 2):
+        temp.append(tumor_data_test.values[i][j + 2])
+    test[i] = np.array(temp)
 
-def main(args):
-    train_set = load_dataset(args.training_file, args.case_sensitive)
-    test_set = load_dataset(args.test_file, args.case_sensitive)
-    if args.baseline:
-        print("You are running the baseline algorithm!")
-        accuracy = compute_accuracies(test_set, baseline(train_set, strip_tags(test_set)))
+dim1 = 2 * len(subset_labels + math.factorial(len(subset_labels) - 1))
+A_quad_train = np.ndarray(shape=(len(tumor_data_train.values), dim1))
+dim2 = 2 * len(subset_labels + math.factorial(len(subset_labels) - 1))
+A_quad_test = np.ndarray(shape=(len(tumor_data_test.values), dim2))
+
+count = 0
+for x in tumor_data_train.columns:
+    if x in subset_labels:
+        temp = []
+        for i in range(len(tumor_data_train)):
+            temp.append(tumor_data_train[x][i])
+        A_quad_train[:, count] = np.array(temp)
+        count += 1
+
+for i in range(len(tumor_data_train)):
+    for j in range(len(subset_labels)):
+        A_quad_train[i][j + len(subset_labels)] = A_quad_train[i][j] * A_quad_train[i][j]
+
+count = 0
+for primary in range(len(subset_labels) - 1):
+    for offset in range(len(subset_labels) - primary - 1):
+        for i in range(len(tumor_data_train)):
+            A_quad_train[i][2 * len(subset_labels) + count] = np.multiply(A_quad_train[i][primary],
+                                                                          A_quad_train[i][primary + offset + 1])
+        count += 1
+
+count = 0
+for x in tumor_data_test.columns:
+    if x in subset_labels:
+        temp = []
+        for i in range(len(tumor_data_test)):
+            temp.append(tumor_data_test[x][i])
+        A_quad_test[:, count] = np.array(temp)
+        count += 1
+
+for i in range(len(tumor_data_test)):
+    for j in range(len(subset_labels)):
+        A_quad_test[i][j + len(subset_labels)] = A_quad_test[i][j] * A_quad_test[i][j]
+
+count = 0
+for primary in range(len(subset_labels) - 1):
+    for offset in range(len(subset_labels) - primary - 1):
+        for i in range(len(tumor_data_test)):
+            A_quad_test[i][2 * len(subset_labels) + count] = np.multiply(A_quad_test[i][primary],
+                                                                         A_quad_test[i][primary + offset + 1])
+        count += 1
+
+# Construct your b's
+b_train = np.zeros(shape=(len(tumor_data_train), 1))
+
+for i in range(len(tumor_data_train)):
+    if tumor_data_train.values[i][1] == 'M':
+        b_train[i] = 1.0
     else:
-        print("You are running the Viterbi algorithm!")
-        accuracy = compute_accuracies(test_set, viterbi(train_set, strip_tags(test_set)))
-    print("Accuracy:",accuracy)
+        b_train[i] = -1.0
 
+b_test = np.zeros(shape=(len(tumor_data_test), 1))
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='CS440 MP5 HMM')
-    parser.add_argument('--train', dest='training_file', type=str, 
-        help='the file of the training data')
-    parser.add_argument('--test', dest='test_file', type=str, 
-        help='the file of the testing data')
-    parser.add_argument('--case', dest='case_sensitive', default=False, action='store_true', 
-        help='Case sensitive (default false)')
-    parser.add_argument('--baseline', dest='baseline', default=False, action='store_true', 
-        help='Use baseline algorithm')
-    parser.add_argument('--viterbi', dest='viterbi', default=False, action='store_true', 
-        help='Use Viterbi algorithm')
-    args = parser.parse_args()
-    if args.training_file == None or args.test_file == None:
-        sys.exit('You must specify training file and testing file!')
-    if args.baseline ^ args.viterbi == False:
-        sys.exit('You must specify using baseline or Viterbi!')
+for i in range(len(tumor_data_test)):
+    if tumor_data_test.values[i][1] == 'M':
+        b_test[i] = 1.0
+    else:
+        b_test[i] = -1.0
 
-    main(args)
+# Solve the least squares problem
+u, sigma, vt = np.linalg.svd(train, full_matrices=False)
+u2, sigma2, vt2 = np.linalg.svd(A_quad_train, full_matrices=False)
+sigma = np.diag(sigma)
+sigma2 = np.diag(sigma2)
+
+weights_linear = vt.T @ la.inv(sigma) @ np.transpose(u) @ b_train
+weights_quad = vt2.T @ la.inv(sigma2) @ np.transpose(u2) @ b_train
+
+fp_linear = 0
+fn_linear = 0
+
+new_b_lin = test @ weights_linear
+
+# See how well your model (i.e. weights) does on the validate data set
+for i in range(len(new_b_lin)):
+    if new_b_lin[i] > 0:
+        if b_test[i] == -1.0:
+            fp_linear += 1
+    elif new_b_lin[i] < 0:
+        if b_test[i] == 1.0:
+            fn_linear += 1
+
+fp_quad = 0
+fn_quad = 0
+new_b_quad = A_quad_test @ weights_quad
+for i in range(len(new_b_quad)):
+    if new_b_quad[i] > 0:
+        if b_test[i] == -1.0:
+            fp_quad += 1
+    elif new_b_quad[i] < 0:
+        if b_test[i] == 1.0:
+            fn_quad += 1
+
+weights_linear = weights_linear.reshape((weights_linear.shape[0],))
+weights_quad = weights_quad.reshape((weights_quad.shape[0],))
+
+# Plot a bar graph of the false-positives and false-negatives
+bar_graph(fp_linear, fn_linear, fp_quad, fn_quad)

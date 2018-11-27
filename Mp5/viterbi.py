@@ -83,8 +83,6 @@ def viterbi(train, test):
     tag_index = {}
     index_count = 0
 
-    emission_smooth_param = 0.01
-
     for sentence in train:
         for pair in sentence:
             word, tag = pair
@@ -102,6 +100,9 @@ def viterbi(train, test):
                 word_to_tag_counts[word][tag] += 1
             else:
                 word_to_tag_counts[word][tag] = 1
+
+    emission_smooth_param = 0.001
+    transition_smooth_param = 0.001
 
     # tag count per word/ total tag count - emission probability
     for key in word_to_tag_counts.keys():
@@ -133,7 +134,6 @@ def viterbi(train, test):
     for i in range(len(initial_tag_probabilities)):
         initial_tag_probabilities[i] = (initial_tag_probabilities[i]) / (len(train))
 
-    transition_smooth_param = 0.01
 
     # LaPlace smoothing: (1+transition occurances)/(tag occurences + num tags)
     for tag, count in tag_totals.items():

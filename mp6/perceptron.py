@@ -30,16 +30,15 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     dev_set - A Numpy array of 32x32x3 images of shape [2500, 3072].
               It is the same format as train_set
     """
-    # TODO: Write your code here
     # return predicted labels of development set
 
 
-    weights = np.ones(3073)
+    weights = np.random.rand(3073)
+    print(weights)
     results = np.zeros(7500)
 
     ones = np.ones((7500, 1))
     new_train = np.hstack((train_set, ones))
-
     new_labels = np.zeros(len(train_labels))
 
     for i in range(len(new_labels)):
@@ -48,36 +47,35 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
         else:
             new_labels[i] = -1
 
-    update_vec = np.zeros(3073)
-
-    learn_rate_decrease = learning_rate/max_iter
-
+    # learn_rate_decrease = learning_rate/max_iter
 
 #Training
     for epoch in range(max_iter):
         for image_count, image in enumerate(new_train):
-            score = np.dot(image, weights.T)
+            score = np.dot(image, weights)
             results[image_count] = np.sign(score)
 
             if results[image_count] != new_labels[image_count]:
-                update_vec = [x * new_labels[image_count] * learning_rate for x in image]
-                weights += update_vec
+                weights += [x * new_labels[image_count] * learning_rate for x in image]
 
-
-        #learning_rate -= learn_rate_decrease
-
-
+        # learning_rate -= learn_rate_decrease
     print(weights)
+    weights = weights * -1
+
 #Testing
     dev_results = np.zeros((2500, 1))
-
     dev_ones = np.ones((2500, 1))
     new_dev = np.hstack((dev_set, dev_ones))
 
     for image_count, image in enumerate(new_dev):
+        score = np.dot(image, weights)
 
-        score = np.dot(image, weights.T)
-        dev_results[image_count] = np.sign(score)
+        if np.sign(score) > 0:
+            classification = 1
+        else:
+            classification = 0
+
+        dev_results[image_count] = classification
 
     return dev_results
 
