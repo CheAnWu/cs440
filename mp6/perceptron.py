@@ -13,6 +13,7 @@ within this file -- the unrevised staff files will be used for all other
 files and classes when code is run, so be careful to not modify anything else.
 """
 import numpy as np
+from numpy.random import permutation
 
 def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     """
@@ -32,8 +33,8 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     """
     # return predicted labels of development set
 
-
-    weights = np.random.rand(3073)
+    weights = np.random.rand(3073) * 1000
+    # weights = np.zeros(3073)
     print(weights)
     results = np.zeros(7500)
 
@@ -47,19 +48,22 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
         else:
             new_labels[i] = -1
 
-    # learn_rate_decrease = learning_rate/max_iter
+    learn_rate_decrease = learning_rate/max_iter/4
 
 #Training
+
     for epoch in range(max_iter):
-        for image_count, image in enumerate(new_train):
+        for image_count in permutation(len(new_train)):
+            image = new_train[image_count]
             score = np.dot(image, weights)
             results[image_count] = np.sign(score)
 
             if results[image_count] != new_labels[image_count]:
                 weights += [x * new_labels[image_count] * learning_rate for x in image]
 
-        # learning_rate -= learn_rate_decrease
+        learning_rate -= learn_rate_decrease
     print(weights)
+
 
 #Testing
     dev_results = np.zeros((2500, 1))
@@ -68,6 +72,7 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
 
     for image_count, image in enumerate(new_dev):
         score = np.dot(image, weights)
+        print(len(image), len(weights))
 
         if np.sign(score) > 0:
             classification = 1
