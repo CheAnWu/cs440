@@ -60,7 +60,6 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
 
         # learning_rate -= learn_rate_decrease
     print(weights)
-    weights = weights * -1
 
 #Testing
     dev_results = np.zeros((2500, 1))
