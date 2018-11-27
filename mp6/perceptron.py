@@ -33,17 +33,24 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     # TODO: Write your code here
     # return predicted labels of development set
 
-    weights = np.zeros(3073)
+
+    weights = np.ones(3073)
     results = np.zeros(7500)
 
     ones = np.ones((7500, 1))
     new_train = np.hstack((train_set, ones))
 
-    new_labels = train_labels.copy()
-    for i in range(len(new_labels)):
-        if new_labels[i] == 0:
-            new_labels[i] == -1
+    new_labels = np.zeros(len(train_labels))
 
+    for i in range(len(new_labels)):
+        if train_labels[i]:
+            new_labels[i] = 1
+        else:
+            new_labels[i] = -1
+
+    update_vec = np.zeros(3073)
+
+    learn_rate_decrease = learning_rate/max_iter
 
 
 #Training
@@ -52,14 +59,17 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
             score = np.dot(image, weights.T)
             results[image_count] = np.sign(score)
 
-        for i in range(3073):
-            if results[image_count] == 1 and train_labels[image_count] == 0:
-                weights[i] = weights[i] + learning_rate * -1 * image[i]
-            elif results[image_count] == -1 and train_labels[image_count] == 1:
-                weights[i] = weights[i] + learning_rate * 1 * image[i]
+            if results[image_count] != new_labels[image_count]:
+                update_vec = [x * new_labels[image_count] * learning_rate for x in image]
+                weights += update_vec
 
+
+        #learning_rate -= learn_rate_decrease
+
+
+    print(weights)
 #Testing
-    dev_results = np.zeros(2500)
+    dev_results = np.zeros((2500, 1))
 
     dev_ones = np.ones((2500, 1))
     new_dev = np.hstack((dev_set, dev_ones))
@@ -67,11 +77,7 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     for image_count, image in enumerate(new_dev):
 
         score = np.dot(image, weights.T)
-
-        if (score > 0):
-            dev_results[image_count] = 1
-        else:
-            dev_results[image_count] = -1
+        dev_results[image_count] = np.sign(score)
 
     return dev_results
 
