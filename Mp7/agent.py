@@ -2,7 +2,8 @@ import utils
 
 class Agent:
     
-    def __init__(self, actions):
+    def __init__(self, actions, two_sided = False):
+        self.two_sided = two_sided
         self._actions = actions
         self._train = True
         self._x_bins = utils.X_BINS
