@@ -1,22 +1,11 @@
 import utils
 import numpy as np
 import math
-
-totalBounces = 0
-learningRate = 1
-discountFactor = 1
+import random
 
 
-def getReward(bounces, done, won):
-    if done:
-        if won:
-            return 1
-        else:
-            return -1
-    if bounces > totalBounces:
-        totalBounces = bounces
-        return 1
-    return 0
+
+
 
 def discretState(state):
     new = np.zeros(len(state))
@@ -46,13 +35,40 @@ def discretState(state):
     return new
 
 
+def choose_action(self, discret_state):
+    qActions = self.Q[discret_state[0]][discret_state[1]][discret_state[2]][discret_state[3]][discret_state[4]]
+
+    maxQ = max(qActions)
+
+    if random.random() < self.epsilon:
+        best = [i for i in range(len(self._actions)) if qActions[i] == maxQ]
+        i = random.choice(best)
+    else:
+        i = qActions.index(maxQ)
+
+    action = self._actions[i]
+
+    return action
+
 
 
 class Agent:
-
-
+    def getReward(self, bounces, done, won):
+        if done:
+            if won:
+                return 1
+            else:
+                return -1
+        if bounces > self.max_bounces:
+            self.max_bounces = bounces
+            return 1
+        return 0
     
     def __init__(self, actions, two_sided = False):
+        self.max_bounces = 0
+        self.learning_rate = 1 #will need to update
+        #rate of decay is C/(C + N(s,a))
+        self.discount_rate = 1 #need to update
         self.two_sided = two_sided
         self._actions = actions
         self._train = True
@@ -70,11 +86,17 @@ class Agent:
          #TODO - fill out this function
         discret_state = discretState(state)
 
+        #Do we only need this for train
+        reward = getReward(self, bounces, done, won)
 
-        reward = getReward(bounces, done, won)
+        #if terminal then update q with new r
 
-        if self.train:
-            #explore and exploit
+
+        if self.train:  #explore and exploit
+            #increment N[s, a]
+            #Update Q[s,a] <-- Q[s,a] + learning*N[s,a] * (r + discount * max Q[s', a'] - Q[s,a])
+
+
             return 0
 
             #update Q table and return best action
