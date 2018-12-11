@@ -6,7 +6,7 @@ import random
 action = [-1, 0, 1]
 
 LEARNING_CONSTANT = 0.55
-EPSILON = .5
+EPSILON = .1
 DISCOUNT_RATE = 0.4
 
 def discretize_state(state):
@@ -26,17 +26,17 @@ def discretize_state(state):
         if new[1] > 11:
             new[1] = int(11)
 
-    if state[2] > 0:
+    if state[2] < 0:
         new[2] = int(0)
     else:
         new[2] = int(1)
 
     if np.absolute(state[3]) < 0.015:
-        new[3] = int(0)
-    elif state[3] > 0:
         new[3] = int(1)
-    else:
+    elif state[3] > 0:
         new[3] = int(2)
+    else:
+        new[3] = int(0)
 
     if new[4] < 0:
         new[4] = int(0)
@@ -105,11 +105,17 @@ class Agent:
                 qidx, maxVal = choose_largest(new_QVals)
                 return action[qidx]
 
+
         new_reward = self.get_reward(bounces, done, won)
+        if new_reward != 0:
+            print(old_QVals)
+            print("new reward")
 
         #Terminal
         if done:
-            self.Q[self.old_state[0]][self.old_state[1]][self.old_state[2]][self.old_state[3]][self.old_state[4]][None] = self.old_reward
+            #May increase this so rewards for winning more influential than rewards for bouncing
+            self.Q[self.old_state[0]][self.old_state[1]][self.old_state[2]][self.old_state[3]][self.old_state[4]][self.old_action] = new_reward
+            temp = self.Q[self.old_state[0]][self.old_state[1]][self.old_state[2]][self.old_state[3]][self.old_state[4]]
             self.max_bounces = 0
             self.old_state[0] = -1
             return action[1]
@@ -122,12 +128,18 @@ class Agent:
 
 
         self.N[self.old_state[0]][self.old_state[1]][self.old_state[2]][self.old_state[3]][self.old_state[4]][self.old_action] += 1
-        old_NVal = self.N[self.old_state[0]][self.old_state[1]][self.old_state[2]][self.old_state[3]][self.old_state[4]][self.old_action]
+        old_NVal = self.N[self.old_state[0]][self.old_state[1]][self.old_state[2]][self.old_state[3]][self.old_state[4]]
         self.updateRates()
 
         qidx, max_QVal = choose_largest(old_QVals)
-        val = self.learning_rate * (1/old_NVal) * (self.old_reward + self.discount_rate * max_QVal - old_QVals[self.old_action])
-        self.Q[self.old_state[0]][self.old_state[1]][self.old_state[2]][self.old_state[3]][self.old_state[4]] += val
+        #if max_QVal != 0:
+        #   print("we got a winner")
+        updateVal = self.discount_rate * max_QVal - old_QVals[self.old_action]
+
+
+        val = self.learning_rate * (new_reward + updateVal)
+        self.Q[self.old_state[0]][self.old_state[1]][self.old_state[2]][self.old_state[3]][self.old_state[4]][self.old_action] += val
+        temp2 = self.Q[self.old_state[0]][self.old_state[1]][self.old_state[2]][self.old_state[3]][self.old_state[4]]
 
 
         new_action = self.choose_action(new_state)
@@ -135,8 +147,7 @@ class Agent:
         self.old_reward = new_reward
         self.old_state = new_state
 
-
-
+        #print(np.count_nonzero(self.Q))
 
         return new_action
 
@@ -173,9 +184,9 @@ class Agent:
 
         self.learning_rate = LEARNING_CONSTANT / (LEARNING_CONSTANT + n)
 
-        self.discount_rate = DISCOUNT_RATE / (DISCOUNT_RATE + n)
+        self.discount_rate = DISCOUNT_RATE
 
-        self.epsilon = EPSILON / (EPSILON + n)
+        self.epsilon = EPSILON
 
 
     def train(self):
