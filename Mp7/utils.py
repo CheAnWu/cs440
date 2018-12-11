@@ -14,32 +14,36 @@ PADDLE_LOCATIONS = 12
 # DO NOT CHANGE THIS
 NUM_ACTIONS = 3
 
+
 def create_q_table():
-	return np.zeros((X_BINS,Y_BINS,V_X,V_Y,PADDLE_LOCATIONS,NUM_ACTIONS))
+    return np.zeros((X_BINS, Y_BINS, V_X, V_Y, PADDLE_LOCATIONS, NUM_ACTIONS))
+
 
 def sanity_check(arr):
-	if (type(arr) is np.ndarray and 
-		arr.shape==(X_BINS,Y_BINS,V_X,V_Y,PADDLE_LOCATIONS,NUM_ACTIONS)): 
-		return True
-	else:
-		return False
+    if (type(arr) is np.ndarray and
+                arr.shape == (X_BINS, Y_BINS, V_X, V_Y, PADDLE_LOCATIONS, NUM_ACTIONS)):
+        return True
+    else:
+        return False
 
-def save(filename,arr): 
-	if sanity_check(arr):
-		np.save(filename,arr)
-		return True
-	else:
-		print("Failed to save model")
-		return False
+
+def save(filename, arr):
+    if sanity_check(arr):
+        np.save(filename, arr)
+        return True
+    else:
+        print("Failed to save model")
+        return False
+
 
 def load(filename):
-	try:
-		arr = np.load(filename)
-		if sanity_check(arr):
-			print("Loaded model succesfully")
-			return arr
-		print("Model loaded is not in the required format")
-		return None
-	except:
-		print("Filename doesnt exist")
-		return None
+    try:
+        arr = np.load(filename)
+        if sanity_check(arr):
+            print("Loaded model succesfully")
+            return arr
+        print("Model loaded is not in the required format")
+        return None
+    except:
+        print("Filename doesnt exist")
+        return None

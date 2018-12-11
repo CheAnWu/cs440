@@ -13,6 +13,7 @@ within this file -- the unrevised staff files will be used for all other
 files and classes when code is run, so be careful to not modify anything else.
 """
 import numpy as np
+from numpy.random import permutation
 
 def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
     """
@@ -31,40 +32,33 @@ def classify(train_set, train_labels, dev_set, learning_rate, max_iter):
               It is the same format as train_set
     """
     # return predicted labels of development set
-    weights = np.zeros(3073)
 
-    # Add a column of ones for the bias. Gets calculated immediately with the dot product for optimized runtime
-    # Piazza post @694
-    ones = np.ones((7500, 1))
-    new_train = np.hstack((train_set, ones))
+
+    weights = np.zeros(3072)
+    b_val  = 0
+
     label_vals = np.zeros(7500)
-
-    learning_rate_decrease = learning_rate/(max_iter * 5)
-
-    #Putting into numerical forward as we were given booleans
     for i in range(len(train_labels)):
         if train_labels[i]:
             label_vals[i] = 1
         else:
             label_vals[i] = -1
-#Training
+
     for epoch in range(max_iter):
-        for image_count, image in enumerate(new_train):
+        for image_count in permutation(len(train_set)):
+            image = train_set[image_count]
             score = np.dot(weights, image)
-            result = np.sign(score)
+            result = np.sign(score + b_val)
 
             if result != label_vals[image_count]:
                 weights += (learning_rate * label_vals[image_count]) * image
+                b_val += learning_rate * label_vals[image_count]
 
-        learning_rate -= learning_rate_decrease
 
     dev_labels = np.zeros(2500)
-    ones = np.ones((2500, 1))
-    new_dev = np.hstack((dev_set, ones))
-#Testing
-    for image_count, image in enumerate(new_dev):
+    for image_count, image in enumerate(dev_set):
         score = np.dot(weights, image)
-        result = np.sign(score)
+        result = np.sign(score + b_val)
         if result == 1:
             dev_labels[image_count] = 1
 
